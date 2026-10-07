@@ -13,3 +13,6 @@ Thumbs.db
 # Déploiement : secrets et paquets générés
 deploy/prod.env
 deploy/out/
+
+# Outils locaux
+.claude/
