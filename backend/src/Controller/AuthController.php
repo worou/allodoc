@@ -6,9 +6,11 @@ use App\Service\AccountResolver;
 use App\Service\OtpService;
 use App\Service\PhoneNumber;
 use App\Service\Presenter;
+use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\Mailer\Exception\TransportExceptionInterface;
 use Symfony\Component\RateLimiter\RateLimiterFactory;
 use Symfony\Component\Routing\Attribute\Route;
 
@@ -22,6 +24,7 @@ final class AuthController extends ApiController
     public function request(
         Request $request,
         OtpService $otp,
+        LoggerInterface $logger,
         #[Autowire(service: 'limiter.otp_request_phone')] RateLimiterFactory $destinationLimiter,
         #[Autowire(service: 'limiter.otp_request_ip')] RateLimiterFactory $ipLimiter,
         #[Autowire('%kernel.environment%')] string $env,
@@ -38,7 +41,13 @@ final class AuthController extends ApiController
         }
 
         if ('email' === $channel) {
-            $code = $otp->requestEmail($destination);
+            try {
+                $code = $otp->requestEmail($destination);
+            } catch (TransportExceptionInterface $e) {
+                $logger->error('Envoi du code par email impossible : {message}', ['message' => $e->getMessage()]);
+
+                return $this->error('L\'envoi de l\'email est momentanément impossible. Réessayez dans quelques minutes ou connectez-vous par SMS.', 503);
+            }
             $response = ['channel' => 'email', 'email' => $destination, 'maskedDestination' => self::maskEmail($destination)];
         } else {
             $code = $otp->requestSms($destination);
