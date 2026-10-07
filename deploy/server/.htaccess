@@ -6,10 +6,10 @@ AddDefaultCharset UTF-8
 <IfModule mod_rewrite.c>
     RewriteEngine On
 
-    # HTTPS obligatoire : décommenter dès que le certificat SSL du sous-domaine est actif (cPanel > SSL/TLS Status).
-    # RewriteCond %{HTTPS} off
-    # RewriteCond %{HTTP:X-Forwarded-Proto} !https
-    # RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+    # HTTPS obligatoire (certificat Let's Encrypt émis via cPanel > Let's Encrypt SSL).
+    RewriteCond %{HTTPS} off
+    RewriteCond %{HTTP:X-Forwarded-Proto} !https
+    RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
 
     # Transmet l'en-tête Authorization (jeton Bearer) à PHP.
     RewriteCond %{HTTP:Authorization} .
