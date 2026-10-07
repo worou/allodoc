@@ -1,0 +1,18 @@
+api_platform:
+    title: AlloDoc API
+    description: "Prise de rendez-vous medicaux - Mali, Burkina Faso, Niger"
+    version: 1.0.0
+    formats:
+        jsonld: ['application/ld+json']
+        json: ['application/json']
+    docs_formats:
+        jsonld: ['application/ld+json']
+        jsonopenapi: ['application/vnd.openapi+json']
+        html: ['text/html']
+    defaults:
+        stateless: true
+        pagination_items_per_page: 30
+        cache_headers:
+            max_age: 300
+            shared_max_age: 300
+            vary: ['Content-Type', 'Authorization', 'Origin']

@@ -1,0 +1,42 @@
+{
+  "id": "/",
+  "name": "AlloDoc : rendez-vous médical",
+  "short_name": "AlloDoc",
+  "description": "Trouvez un médecin et prenez rendez-vous au Mali, au Burkina Faso et au Niger. Espace praticien inclus.",
+  "start_url": "/?source=app",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#faf5ec",
+  "theme_color": "#141640",
+  "lang": "fr",
+  "dir": "ltr",
+  "categories": ["medical", "health", "lifestyle"],
+  "icons": [
+    { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/maskable-192.png", "sizes": "192x192", "type": "image/png", "purpose": "maskable" },
+    { "src": "/icons/maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" },
+    { "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+  ],
+  "shortcuts": [
+    {
+      "name": "Trouver un médecin",
+      "short_name": "Rechercher",
+      "url": "/recherche?source=app",
+      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png" }]
+    },
+    {
+      "name": "Mes rendez-vous",
+      "short_name": "Mes RDV",
+      "url": "/compte?source=app",
+      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png" }]
+    },
+    {
+      "name": "Mon agenda (praticien)",
+      "short_name": "Agenda",
+      "url": "/pro?source=app",
+      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png" }]
+    }
+  ]
+}

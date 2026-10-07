@@ -1,0 +1,8 @@
+# Fins de ligne normalisées (LF) dans le dépôt, quel que soit le poste.
+* text=auto eol=lf
+*.bat text eol=crlf
+*.cmd text eol=crlf
+*.png binary
+*.jpg binary
+*.jar binary
+*.ico binary

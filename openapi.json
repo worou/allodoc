@@ -1,0 +1,4704 @@
+{
+    "openapi": "3.2.0",
+    "info": {
+        "title": "AlloDoc API",
+        "description": "Prise de rendez-vous medicaux - Mali, Burkina Faso, Niger",
+        "version": "1.0.0"
+    },
+    "servers": [
+        {
+            "url": "http://127.0.0.1:8000",
+            "description": "D\u00e9veloppement local"
+        }
+    ],
+    "paths": {
+        "/api/pro/subscription": {
+            "get": {
+                "operationId": "proSubscription",
+                "tags": [
+                    "Abonnement"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "\u00c9tat",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SubscriptionStatus"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Aucune fiche praticien li\u00e9e",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        }
+                    }
+                },
+                "summary": "\u00c9tat de mon abonnement",
+                "description": "Publication, date de fin, jours restants, formules, moyens de paiement, compte marchand du pays, commande en attente et historique.",
+                "parameters": [],
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/pro/subscriptions": {
+            "post": {
+                "operationId": "proOrderSubscription",
+                "tags": [
+                    "Abonnement"
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Commande cr\u00e9\u00e9e",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Subscription"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Formule ou moyen de paiement invalide",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        }
+                    }
+                },
+                "summary": "Commander ou renouveler",
+                "description": "Cr\u00e9e une commande en attente avec une r\u00e9f\u00e9rence (AD-XXXXXX) \u00e0 indiquer dans le transfert mobile money. Remplace une \u00e9ventuelle commande en attente. \u00c0 la confirmation du paiement, la p\u00e9riode d\u00e9marre \u00e0 la fin de l'abonnement en cours (renouvellement anticip\u00e9 sans perte) ou imm\u00e9diatement.",
+                "parameters": [],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/SubscriptionOrder"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/pro/subscriptions/{id}/cancel": {
+            "post": {
+                "operationId": "proCancelSubscription",
+                "tags": [
+                    "Abonnement"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Commande annul\u00e9e",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Subscription"
+                                }
+                            }
+                        }
+                    },
+                    "409": {
+                        "description": "Commande d\u00e9j\u00e0 trait\u00e9e",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        }
+                    }
+                },
+                "summary": "Annuler une commande en attente",
+                "description": "",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Identifiant du rendez-vous (UUID)",
+                        "required": true,
+                        "deprecated": false,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        },
+                        "style": "simple",
+                        "explode": false
+                    }
+                ],
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/pro/subscriptions/{id}/simulate-payment": {
+            "post": {
+                "operationId": "proSimulatePayment",
+                "tags": [
+                    "Abonnement"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Pay\u00e9",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Subscription"
+                                }
+                            }
+                        }
+                    }
+                },
+                "summary": "Simuler le paiement (environnement dev uniquement)",
+                "description": "Renvoie 404 hors environnement de d\u00e9veloppement.",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Identifiant du rendez-vous (UUID)",
+                        "required": true,
+                        "deprecated": false,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        },
+                        "style": "simple",
+                        "explode": false
+                    }
+                ],
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/admin/practitioners": {
+            "get": {
+                "operationId": "adminPractitioners",
+                "tags": [
+                    "Administration"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Liste",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/AdminPractitioners"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "R\u00f4le administrateur requis",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        }
+                    }
+                },
+                "summary": "Praticiens \u00e0 valider",
+                "description": "Filtr\u00e9 sur le pays de l'administrateur pays.",
+                "parameters": [
+                    {
+                        "name": "status",
+                        "in": "query",
+                        "description": "Statut de v\u00e9rification",
+                        "required": false,
+                        "deprecated": false,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "pending",
+                                "verified",
+                                "rejected"
+                            ],
+                            "default": "pending"
+                        },
+                        "style": "form",
+                        "explode": true
+                    }
+                ],
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/admin/practitioners/{id}/verification": {
+            "post": {
+                "operationId": "adminDecide",
+                "tags": [
+                    "Administration"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "D\u00e9cision enregistr\u00e9e",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/VerificationResult"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Introuvable ou hors de votre pays",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        }
+                    }
+                },
+                "summary": "Valider ou rejeter un praticien",
+                "description": "Apr\u00e8s contr\u00f4le du num\u00e9ro d'inscription \u00e0 l'ordre. Action trac\u00e9e dans le journal d'audit.",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Identifiant du praticien",
+                        "required": true,
+                        "deprecated": false,
+                        "schema": {
+                            "type": "integer"
+                        },
+                        "style": "simple",
+                        "explode": false
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/VerificationInput"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/admin/subscriptions": {
+            "get": {
+                "operationId": "adminSubscriptions",
+                "tags": [
+                    "Administration"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Liste et total",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/AdminSubscriptions"
+                                }
+                            }
+                        }
+                    }
+                },
+                "summary": "Commandes d'abonnement",
+                "description": "Limit\u00e9es au pays de l'administrateur. Les commandes impay\u00e9es depuis plus de 14 jours sont annul\u00e9es automatiquement.",
+                "parameters": [
+                    {
+                        "name": "status",
+                        "in": "query",
+                        "description": "Statut",
+                        "required": false,
+                        "deprecated": false,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "pending",
+                                "paid",
+                                "cancelled"
+                            ],
+                            "default": "pending"
+                        },
+                        "style": "form",
+                        "explode": true
+                    }
+                ],
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/admin/subscriptions/{id}/confirm": {
+            "post": {
+                "operationId": "adminConfirmPayment",
+                "tags": [
+                    "Administration"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Pay\u00e9",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Subscription"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Introuvable ou hors de votre pays",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        }
+                    },
+                    "409": {
+                        "description": "D\u00e9j\u00e0 trait\u00e9",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        }
+                    }
+                },
+                "summary": "Confirmer la r\u00e9ception du paiement",
+                "description": "Publie le praticien et lui envoie un SMS. Trac\u00e9 dans le journal d'audit.",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Identifiant du rendez-vous (UUID)",
+                        "required": true,
+                        "deprecated": false,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        },
+                        "style": "simple",
+                        "explode": false
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/PaymentConfirmation"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/admin/subscriptions/{id}/reject": {
+            "post": {
+                "operationId": "adminRejectPayment",
+                "tags": [
+                    "Administration"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Annul\u00e9e",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Subscription"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Introuvable ou d\u00e9j\u00e0 trait\u00e9e",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        }
+                    }
+                },
+                "summary": "Refuser une commande",
+                "description": "",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Identifiant du rendez-vous (UUID)",
+                        "required": true,
+                        "deprecated": false,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        },
+                        "style": "simple",
+                        "explode": false
+                    }
+                ],
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/countries/{code}/overview": {
+            "get": {
+                "operationId": "countryOverview",
+                "tags": [
+                    "Annuaire"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Vue d'ensemble",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/CountryOverview"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Pays inconnu",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        }
+                    }
+                },
+                "summary": "Page d'accueil d'un pays",
+                "description": "R\u00e9gions (avec nombre de praticiens v\u00e9rifi\u00e9s et indicateur provisoire) et sp\u00e9cialit\u00e9s disponibles. Cache public 5 minutes.",
+                "parameters": [
+                    {
+                        "name": "code",
+                        "in": "path",
+                        "description": "Code ISO du pays",
+                        "required": true,
+                        "deprecated": false,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "ML",
+                                "BF",
+                                "NE"
+                            ]
+                        },
+                        "style": "simple",
+                        "explode": false,
+                        "example": "ML"
+                    }
+                ]
+            }
+        },
+        "/api/practitioners/{slug}": {
+            "get": {
+                "operationId": "getPractitioner",
+                "tags": [
+                    "Annuaire"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Fiche",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/PractitionerDetail"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Introuvable",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        }
+                    }
+                },
+                "summary": "Fiche praticien",
+                "description": "Uniquement les praticiens v\u00e9rifi\u00e9s.",
+                "parameters": [
+                    {
+                        "name": "slug",
+                        "in": "path",
+                        "description": "Identifiant lisible du praticien",
+                        "required": true,
+                        "deprecated": false,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "style": "simple",
+                        "explode": false,
+                        "example": "boubacar-coulibaly"
+                    }
+                ]
+            }
+        },
+        "/api/practitioners/{slug}/slots": {
+            "get": {
+                "operationId": "getPractitionerSlots",
+                "tags": [
+                    "Annuaire"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Cr\u00e9neaux par jour",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SlotDays"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Introuvable",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        }
+                    }
+                },
+                "summary": "Cr\u00e9neaux libres",
+                "description": "Calcul\u00e9s \u00e0 partir des horaires r\u00e9currents, des cong\u00e9s et des rendez-vous pris, dans le fuseau du pays. `start` est en UTC.",
+                "parameters": [
+                    {
+                        "name": "slug",
+                        "in": "path",
+                        "description": "Identifiant lisible du praticien",
+                        "required": true,
+                        "deprecated": false,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "style": "simple",
+                        "explode": false,
+                        "example": "boubacar-coulibaly"
+                    },
+                    {
+                        "name": "from",
+                        "in": "query",
+                        "description": "Premier jour (YYYY-MM-DD)",
+                        "required": false,
+                        "deprecated": false,
+                        "schema": {
+                            "type": "string",
+                            "format": "date"
+                        },
+                        "style": "form",
+                        "explode": true
+                    },
+                    {
+                        "name": "days",
+                        "in": "query",
+                        "description": "Nombre de jours (1 \u00e0 14)",
+                        "required": false,
+                        "deprecated": false,
+                        "schema": {
+                            "type": "integer",
+                            "default": 7
+                        },
+                        "style": "form",
+                        "explode": true
+                    }
+                ]
+            }
+        },
+        "/api/search": {
+            "get": {
+                "operationId": "searchPractitioners",
+                "tags": [
+                    "Annuaire"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "R\u00e9sultats",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SearchResult"
+                                }
+                            }
+                        }
+                    }
+                },
+                "summary": "Rechercher des praticiens",
+                "description": "R\u00e9sultats pagin\u00e9s ; chaque praticien inclut sa grille de cr\u00e9neaux sur `days` jours et sa prochaine disponibilit\u00e9.",
+                "parameters": [
+                    {
+                        "name": "country",
+                        "in": "query",
+                        "description": "Code pays",
+                        "required": false,
+                        "deprecated": false,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "ML",
+                                "BF",
+                                "NE"
+                            ]
+                        },
+                        "style": "form",
+                        "explode": true,
+                        "example": "ML"
+                    },
+                    {
+                        "name": "region",
+                        "in": "query",
+                        "description": "Slug de r\u00e9gion",
+                        "required": false,
+                        "deprecated": false,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "style": "form",
+                        "explode": true,
+                        "example": "district-de-bamako"
+                    },
+                    {
+                        "name": "city",
+                        "in": "query",
+                        "description": "Nom exact de la ville",
+                        "required": false,
+                        "deprecated": false,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "style": "form",
+                        "explode": true,
+                        "example": "Bamako"
+                    },
+                    {
+                        "name": "specialty",
+                        "in": "query",
+                        "description": "Slug de sp\u00e9cialit\u00e9",
+                        "required": false,
+                        "deprecated": false,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "style": "form",
+                        "explode": true,
+                        "example": "pediatrie"
+                    },
+                    {
+                        "name": "q",
+                        "in": "query",
+                        "description": "Texte libre : nom du praticien ou de la structure",
+                        "required": false,
+                        "deprecated": false,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "style": "form",
+                        "explode": true
+                    },
+                    {
+                        "name": "teleconsultation",
+                        "in": "query",
+                        "description": "Uniquement la t\u00e9l\u00e9consultation",
+                        "required": false,
+                        "deprecated": false,
+                        "schema": {
+                            "type": "boolean"
+                        },
+                        "style": "form",
+                        "explode": true
+                    },
+                    {
+                        "name": "language",
+                        "in": "query",
+                        "description": "Langue parl\u00e9e (fr, bm, mos, ha, dje, ff, en\u2026)",
+                        "required": false,
+                        "deprecated": false,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "style": "form",
+                        "explode": true,
+                        "example": "bm"
+                    },
+                    {
+                        "name": "insurance",
+                        "in": "query",
+                        "description": "Assurance accept\u00e9e",
+                        "required": false,
+                        "deprecated": false,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "style": "form",
+                        "explode": true,
+                        "example": "AMO"
+                    },
+                    {
+                        "name": "from",
+                        "in": "query",
+                        "description": "Premier jour de la grille (YYYY-MM-DD, d\u00e9faut : aujourd'hui)",
+                        "required": false,
+                        "deprecated": false,
+                        "schema": {
+                            "type": "string",
+                            "format": "date"
+                        },
+                        "style": "form",
+                        "explode": true
+                    },
+                    {
+                        "name": "days",
+                        "in": "query",
+                        "description": "Nombre de jours de la grille (1 \u00e0 7)",
+                        "required": false,
+                        "deprecated": false,
+                        "schema": {
+                            "type": "integer",
+                            "default": 5
+                        },
+                        "style": "form",
+                        "explode": true
+                    },
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "description": "Page",
+                        "required": false,
+                        "deprecated": false,
+                        "schema": {
+                            "type": "integer",
+                            "default": 1
+                        },
+                        "style": "form",
+                        "explode": true
+                    },
+                    {
+                        "name": "perPage",
+                        "in": "query",
+                        "description": "R\u00e9sultats par page (1 \u00e0 20)",
+                        "required": false,
+                        "deprecated": false,
+                        "schema": {
+                            "type": "integer",
+                            "default": 10
+                        },
+                        "style": "form",
+                        "explode": true
+                    }
+                ]
+            }
+        },
+        "/api/auth/oauth/exchange": {
+            "post": {
+                "operationId": "oauthExchange",
+                "tags": [
+                    "Authentification"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Connect\u00e9",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/AuthToken"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Code expir\u00e9 ou d\u00e9j\u00e0 utilis\u00e9",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        }
+                    }
+                },
+                "summary": "\u00c9changer le code \u00e0 usage unique contre un jeton",
+                "description": "Code valable 60 secondes et une seule fois, uniquement avec le nonce fourni au d\u00e9marrage (protection contre un lien de retour transmis par un tiers).",
+                "parameters": [],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/OAuthExchange"
+                            }
+                        }
+                    },
+                    "required": true
+                }
+            }
+        },
+        "/api/auth/oauth/providers": {
+            "get": {
+                "operationId": "oauthProviders",
+                "tags": [
+                    "Authentification"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Fournisseurs",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/OAuthProviders"
+                                }
+                            }
+                        }
+                    }
+                },
+                "summary": "Fournisseurs de connexion (Google, GitHub)",
+                "description": "`configured: false` tant que les identifiants OAuth ne sont pas renseign\u00e9s sur le serveur.",
+                "parameters": []
+            }
+        },
+        "/api/auth/oauth/{provider}": {
+            "get": {
+                "operationId": "oauthStart",
+                "tags": [
+                    "Authentification"
+                ],
+                "responses": {
+                    "302": {
+                        "description": "Redirection vers le fournisseur",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Ok"
+                                }
+                            }
+                        }
+                    }
+                },
+                "summary": "D\u00e9marrer la connexion Google ou GitHub (navigation, pas fetch)",
+                "description": "\u00c0 ouvrir par une navigation compl\u00e8te du navigateur. Pose un cookie HttpOnly (state anti-CSRF, PKCE) puis redirige (302) vers le fournisseur. Au retour, l'API redirige vers `FRONTEND_URL/connexion/oauth?code=\u2026&next=\u2026` (succ\u00e8s) ou `FRONTEND_URL/connexion?oauth_error=\u2026` (\u00e9chec).",
+                "parameters": [
+                    {
+                        "name": "provider",
+                        "in": "path",
+                        "description": "Fournisseur",
+                        "required": true,
+                        "deprecated": false,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "google",
+                                "github"
+                            ]
+                        },
+                        "style": "simple",
+                        "explode": false
+                    },
+                    {
+                        "name": "next",
+                        "in": "query",
+                        "description": "Chemin du front o\u00f9 revenir apr\u00e8s connexion (doit commencer par /)",
+                        "required": false,
+                        "deprecated": false,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "style": "form",
+                        "explode": true,
+                        "example": "/compte"
+                    },
+                    {
+                        "name": "nonce",
+                        "in": "query",
+                        "description": "Valeur al\u00e9atoire (16 \u00e0 128 caract\u00e8res [A-Za-z0-9_-]) g\u00e9n\u00e9r\u00e9e par le front et gard\u00e9e en sessionStorage ; \u00e0 renvoyer \u00e0 /exchange",
+                        "required": true,
+                        "deprecated": false,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "style": "form",
+                        "explode": true
+                    }
+                ]
+            }
+        },
+        "/api/auth/oauth/{provider}/callback": {
+            "get": {
+                "operationId": "oauthCallback",
+                "tags": [
+                    "Authentification"
+                ],
+                "responses": {
+                    "302": {
+                        "description": "Redirection vers le front",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Ok"
+                                }
+                            }
+                        }
+                    }
+                },
+                "summary": "Retour du fournisseur (adresse \u00e0 d\u00e9clarer chez Google / GitHub)",
+                "description": "V\u00e9rifie le state, r\u00e9cup\u00e8re l'identit\u00e9, retrouve ou cr\u00e9e le compte. Rattachement \u00e0 un compte existant uniquement via un identifiant fournisseur connu ou une adresse email v\u00e9rifi\u00e9e des deux c\u00f4t\u00e9s.",
+                "parameters": [
+                    {
+                        "name": "provider",
+                        "in": "path",
+                        "description": "Fournisseur",
+                        "required": true,
+                        "deprecated": false,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "google",
+                                "github"
+                            ]
+                        },
+                        "style": "simple",
+                        "explode": false
+                    },
+                    {
+                        "name": "code",
+                        "in": "query",
+                        "description": "Code d'autorisation du fournisseur",
+                        "required": false,
+                        "deprecated": false,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "style": "form",
+                        "explode": true
+                    },
+                    {
+                        "name": "state",
+                        "in": "query",
+                        "description": "Valeur anti-CSRF",
+                        "required": false,
+                        "deprecated": false,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "style": "form",
+                        "explode": true
+                    }
+                ]
+            }
+        },
+        "/api/auth/otp/request": {
+            "post": {
+                "operationId": "otpRequest",
+                "tags": [
+                    "Authentification"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Code envoy\u00e9",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/OtpRequested"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Num\u00e9ro invalide",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        }
+                    },
+                    "429": {
+                        "description": "Trop de demandes",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        }
+                    }
+                },
+                "summary": "Envoyer un code de connexion par SMS ou par email",
+                "description": "Corps `{\"phone\", \"country\"}` (SMS) ou `{\"email\"}` (email). Envoie un code \u00e0 6 chiffres valable 10 minutes. Limites : 3 demandes / 10 min par num\u00e9ro ou adresse, 20 / heure par IP. En environnement dev, le code est renvoy\u00e9 dans `devCode`.",
+                "parameters": [],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/OtpRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                }
+            }
+        },
+        "/api/auth/otp/verify": {
+            "post": {
+                "operationId": "otpVerify",
+                "tags": [
+                    "Authentification"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Connect\u00e9",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/AuthToken"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Code incorrect ou expir\u00e9",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        }
+                    },
+                    "429": {
+                        "description": "Trop de tentatives",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        }
+                    }
+                },
+                "summary": "V\u00e9rifier le code et obtenir un jeton",
+                "description": "Cr\u00e9e le compte au premier passage. Par email, l'adresse devient v\u00e9rifi\u00e9e et le compte n'a pas encore de t\u00e9l\u00e9phone : il faut en ajouter un via POST /api/me/phone avant de r\u00e9server. Jeton valable 30 jours, 5 essais maximum par code.",
+                "parameters": [],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/OtpVerify"
+                            }
+                        }
+                    },
+                    "required": true
+                }
+            }
+        },
+        "/api/cities": {
+            "get": {
+                "operationId": "api_cities_get_collection",
+                "tags": [
+                    "City"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "City collection",
+                        "content": {
+                            "application/ld+json": {
+                                "schema": {
+                                    "type": "object",
+                                    "description": "City.jsonld-city.read collection.",
+                                    "allOf": [
+                                        {
+                                            "$ref": "#/components/schemas/HydraCollectionBaseSchemaNoPagination"
+                                        },
+                                        {
+                                            "type": "object",
+                                            "required": [
+                                                "member"
+                                            ],
+                                            "properties": {
+                                                "member": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "$ref": "#/components/schemas/City.jsonld-city.read"
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    ]
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/City-city.read"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "summary": "Retrieves the collection of City resources.",
+                "description": "Retrieves the collection of City resources.",
+                "parameters": [
+                    {
+                        "name": "region.country.code",
+                        "in": "query",
+                        "description": "",
+                        "required": false,
+                        "deprecated": false,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "style": "form",
+                        "explode": false
+                    },
+                    {
+                        "name": "region.country.code[]",
+                        "in": "query",
+                        "description": "",
+                        "required": false,
+                        "deprecated": false,
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
+                        },
+                        "style": "form",
+                        "explode": true
+                    },
+                    {
+                        "name": "region.slug",
+                        "in": "query",
+                        "description": "",
+                        "required": false,
+                        "deprecated": false,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "style": "form",
+                        "explode": false
+                    },
+                    {
+                        "name": "region.slug[]",
+                        "in": "query",
+                        "description": "",
+                        "required": false,
+                        "deprecated": false,
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
+                        },
+                        "style": "form",
+                        "explode": true
+                    }
+                ]
+            }
+        },
+        "/api/cities/{id}": {
+            "get": {
+                "operationId": "api_cities_id_get",
+                "tags": [
+                    "City"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "City resource",
+                        "content": {
+                            "application/ld+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/City.jsonld-city.read"
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/City-city.read"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not found",
+                        "content": {
+                            "application/ld+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error.jsonld"
+                                }
+                            },
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        },
+                        "links": {}
+                    }
+                },
+                "summary": "Retrieves a City resource.",
+                "description": "Retrieves a City resource.",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "City identifier",
+                        "required": true,
+                        "deprecated": false,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "style": "simple",
+                        "explode": false
+                    }
+                ]
+            }
+        },
+        "/api/countries": {
+            "get": {
+                "operationId": "api_countries_get_collection",
+                "tags": [
+                    "Country"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Country collection",
+                        "content": {
+                            "application/ld+json": {
+                                "schema": {
+                                    "type": "object",
+                                    "description": "Country.jsonld-country.read collection.",
+                                    "allOf": [
+                                        {
+                                            "$ref": "#/components/schemas/HydraCollectionBaseSchemaNoPagination"
+                                        },
+                                        {
+                                            "type": "object",
+                                            "required": [
+                                                "member"
+                                            ],
+                                            "properties": {
+                                                "member": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "$ref": "#/components/schemas/Country.jsonld-country.read"
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    ]
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/Country-country.read"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "summary": "Retrieves the collection of Country resources.",
+                "description": "Retrieves the collection of Country resources.",
+                "parameters": []
+            }
+        },
+        "/api/countries/{code}": {
+            "get": {
+                "operationId": "api_countries_code_get",
+                "tags": [
+                    "Country"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Country resource",
+                        "content": {
+                            "application/ld+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Country.jsonld-country.read"
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Country-country.read"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not found",
+                        "content": {
+                            "application/ld+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error.jsonld"
+                                }
+                            },
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        },
+                        "links": {}
+                    }
+                },
+                "summary": "Retrieves a Country resource.",
+                "description": "Retrieves a Country resource.",
+                "parameters": [
+                    {
+                        "name": "code",
+                        "in": "path",
+                        "description": "Country identifier",
+                        "required": true,
+                        "deprecated": false,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "style": "simple",
+                        "explode": false
+                    }
+                ]
+            }
+        },
+        "/api/facilities": {
+            "get": {
+                "operationId": "api_facilities_get_collection",
+                "tags": [
+                    "Facility"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Facility collection",
+                        "content": {
+                            "application/ld+json": {
+                                "schema": {
+                                    "type": "object",
+                                    "description": "Facility.jsonld-facility.read collection.",
+                                    "allOf": [
+                                        {
+                                            "$ref": "#/components/schemas/HydraCollectionBaseSchema"
+                                        },
+                                        {
+                                            "type": "object",
+                                            "required": [
+                                                "member"
+                                            ],
+                                            "properties": {
+                                                "member": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "$ref": "#/components/schemas/Facility.jsonld-facility.read"
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    ]
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/Facility-facility.read"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "summary": "Retrieves the collection of Facility resources.",
+                "description": "Retrieves the collection of Facility resources.",
+                "parameters": [
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "description": "The collection page number",
+                        "required": false,
+                        "deprecated": false,
+                        "schema": {
+                            "type": "integer",
+                            "default": 1
+                        },
+                        "style": "form",
+                        "explode": true
+                    }
+                ]
+            }
+        },
+        "/api/facilities/{id}": {
+            "get": {
+                "operationId": "api_facilities_id_get",
+                "tags": [
+                    "Facility"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Facility resource",
+                        "content": {
+                            "application/ld+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Facility.jsonld-facility.read"
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Facility-facility.read"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not found",
+                        "content": {
+                            "application/ld+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error.jsonld"
+                                }
+                            },
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        },
+                        "links": {}
+                    }
+                },
+                "summary": "Retrieves a Facility resource.",
+                "description": "Retrieves a Facility resource.",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Facility identifier",
+                        "required": true,
+                        "deprecated": false,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "style": "simple",
+                        "explode": false
+                    }
+                ]
+            }
+        },
+        "/api/appointments": {
+            "post": {
+                "operationId": "bookAppointment",
+                "tags": [
+                    "Patient"
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Rendez-vous confirm\u00e9",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Appointment"
+                                }
+                            }
+                        }
+                    },
+                    "409": {
+                        "description": "Cr\u00e9neau indisponible ou quota atteint",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Donn\u00e9es ou profil incomplets",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        }
+                    }
+                },
+                "summary": "R\u00e9server un cr\u00e9neau",
+                "description": "Verrouille l'agenda du praticien le temps de la v\u00e9rification ; une contrainte unique emp\u00eache toute double r\u00e9servation. Pr\u00e9requis : pr\u00e9nom, nom et consentement renseign\u00e9s (sinon 422 avec `code` = `profile_incomplete` ou `consent_required`). Un SMS de confirmation est envoy\u00e9 (sans le motif).",
+                "parameters": [],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/BookingInput"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/appointments/{id}": {
+            "patch": {
+                "operationId": "updateAppointment",
+                "tags": [
+                    "Patient"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Rendez-vous mis \u00e0 jour",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Appointment"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Introuvable",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        }
+                    },
+                    "409": {
+                        "description": "Action impossible",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        }
+                    }
+                },
+                "summary": "Annuler ou reporter un rendez-vous",
+                "description": "Le report r\u00e9serve le nouveau cr\u00e9neau et annule l'ancien dans une m\u00eame transaction ; la r\u00e9ponse est le nouveau rendez-vous.",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Identifiant du rendez-vous (UUID)",
+                        "required": true,
+                        "deprecated": false,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        },
+                        "style": "simple",
+                        "explode": false
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/AppointmentAction"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/me": {
+            "get": {
+                "operationId": "getMe",
+                "tags": [
+                    "Patient"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Profil",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/User"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Non connect\u00e9",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        }
+                    }
+                },
+                "summary": "Mon profil",
+                "description": "",
+                "parameters": [],
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "patch": {
+                "operationId": "updateMe",
+                "tags": [
+                    "Patient"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Profil mis \u00e0 jour",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/User"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Donn\u00e9es invalides",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        }
+                    }
+                },
+                "summary": "Mettre \u00e0 jour mon profil",
+                "description": "`consent: true` enregistre le consentement au traitement des donn\u00e9es (obligatoire avant de r\u00e9server).",
+                "parameters": [],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/UserUpdate"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/me/appointments": {
+            "get": {
+                "operationId": "myAppointments",
+                "tags": [
+                    "Patient"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Rendez-vous",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/MyAppointments"
+                                }
+                            }
+                        }
+                    }
+                },
+                "summary": "Mes rendez-vous",
+                "description": "Rendez-vous \u00e0 venir (ordre chronologique) et pass\u00e9s ou annul\u00e9s.",
+                "parameters": [],
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/me/email": {
+            "post": {
+                "operationId": "verifyMyEmail",
+                "tags": [
+                    "Patient"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Adresse v\u00e9rifi\u00e9e",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/User"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Code incorrect",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        }
+                    },
+                    "409": {
+                        "description": "Adresse d\u00e9j\u00e0 utilis\u00e9e",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        }
+                    }
+                },
+                "summary": "V\u00e9rifier une adresse email pour mon compte",
+                "description": "Demander d'abord un code via POST /api/auth/otp/request {\"email\"}. Permet ensuite de se connecter \u00e0 ce m\u00eame compte par email, Google ou GitHub. 409 `email_taken` si l'adresse est d\u00e9j\u00e0 v\u00e9rifi\u00e9e sur un autre compte.",
+                "parameters": [],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/EmailInput"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/me/phone": {
+            "post": {
+                "operationId": "setMyPhone",
+                "tags": [
+                    "Patient"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Num\u00e9ro v\u00e9rifi\u00e9",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/User"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Code incorrect",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        }
+                    },
+                    "409": {
+                        "description": "Num\u00e9ro d\u00e9j\u00e0 utilis\u00e9",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        }
+                    }
+                },
+                "summary": "Ajouter ou changer mon num\u00e9ro (v\u00e9rifi\u00e9 par SMS)",
+                "description": "Demander d'abord un code via POST /api/auth/otp/request avec ce num\u00e9ro. 409 `phone_taken` si le num\u00e9ro appartient \u00e0 un autre compte.",
+                "parameters": [],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/PhoneInput"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/me/relatives": {
+            "post": {
+                "operationId": "addRelative",
+                "tags": [
+                    "Patient"
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Proche ajout\u00e9",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Relative"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Donn\u00e9es invalides",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        }
+                    }
+                },
+                "summary": "Ajouter un proche",
+                "description": "Pour r\u00e9server pour un enfant, un parent ou un conjoint (10 maximum).",
+                "parameters": [],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/RelativeInput"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/pro/absences": {
+            "post": {
+                "operationId": "proAddAbsence",
+                "tags": [
+                    "Praticien"
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Cong\u00e9 enregistr\u00e9",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Ok"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "P\u00e9riode invalide",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        }
+                    }
+                },
+                "summary": "D\u00e9clarer un cong\u00e9",
+                "description": "Les cr\u00e9neaux de la p\u00e9riode disparaissent de la r\u00e9servation en ligne.",
+                "parameters": [],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/AbsenceInput"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/pro/agenda": {
+            "get": {
+                "operationId": "proAgenda",
+                "tags": [
+                    "Praticien"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Agenda",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ProAgenda"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "R\u00f4le praticien requis",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Aucune fiche li\u00e9e",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        }
+                    }
+                },
+                "summary": "Mon agenda de la semaine",
+                "description": "Semaine de 7 jours \u00e0 partir de `from` (lundi courant par d\u00e9faut), avec les coordonn\u00e9es des patients.",
+                "parameters": [
+                    {
+                        "name": "from",
+                        "in": "query",
+                        "description": "Premier jour (YYYY-MM-DD)",
+                        "required": false,
+                        "deprecated": false,
+                        "schema": {
+                            "type": "string",
+                            "format": "date"
+                        },
+                        "style": "form",
+                        "explode": true
+                    }
+                ],
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/pro/appointments/{id}": {
+            "patch": {
+                "operationId": "proUpdateAppointment",
+                "tags": [
+                    "Praticien"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Statut mis \u00e0 jour",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Appointment"
+                                }
+                            }
+                        }
+                    },
+                    "409": {
+                        "description": "Transition impossible",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Statut invalide",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        }
+                    }
+                },
+                "summary": "Confirmer, refuser, marquer honor\u00e9 ou absent",
+                "description": "`honored` et `no_show` ne sont possibles qu'apr\u00e8s l'heure de d\u00e9but. Un rendez-vous annul\u00e9 ne peut pas \u00eatre r\u00e9tabli.",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Identifiant du rendez-vous (UUID)",
+                        "required": true,
+                        "deprecated": false,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        },
+                        "style": "simple",
+                        "explode": false
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/ProStatusInput"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/pro/stats": {
+            "get": {
+                "operationId": "proStats",
+                "tags": [
+                    "Praticien"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Statistiques",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ProStats"
+                                }
+                            }
+                        }
+                    }
+                },
+                "summary": "Tableau de bord",
+                "description": "Fr\u00e9quentation et taux d'absence sur 30 jours.",
+                "parameters": [],
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/regions": {
+            "get": {
+                "operationId": "api_regions_get_collection",
+                "tags": [
+                    "Region"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Region collection",
+                        "content": {
+                            "application/ld+json": {
+                                "schema": {
+                                    "type": "object",
+                                    "description": "Region.jsonld-region.read collection.",
+                                    "allOf": [
+                                        {
+                                            "$ref": "#/components/schemas/HydraCollectionBaseSchemaNoPagination"
+                                        },
+                                        {
+                                            "type": "object",
+                                            "required": [
+                                                "member"
+                                            ],
+                                            "properties": {
+                                                "member": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "$ref": "#/components/schemas/Region.jsonld-region.read"
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    ]
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/Region-region.read"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "summary": "Retrieves the collection of Region resources.",
+                "description": "Retrieves the collection of Region resources.",
+                "parameters": [
+                    {
+                        "name": "country.code",
+                        "in": "query",
+                        "description": "",
+                        "required": false,
+                        "deprecated": false,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "style": "form",
+                        "explode": false
+                    },
+                    {
+                        "name": "country.code[]",
+                        "in": "query",
+                        "description": "",
+                        "required": false,
+                        "deprecated": false,
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
+                        },
+                        "style": "form",
+                        "explode": true
+                    }
+                ]
+            }
+        },
+        "/api/regions/{id}": {
+            "get": {
+                "operationId": "api_regions_id_get",
+                "tags": [
+                    "Region"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Region resource",
+                        "content": {
+                            "application/ld+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Region.jsonld-region.read"
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Region-region.read"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not found",
+                        "content": {
+                            "application/ld+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error.jsonld"
+                                }
+                            },
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        },
+                        "links": {}
+                    }
+                },
+                "summary": "Retrieves a Region resource.",
+                "description": "Retrieves a Region resource.",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Region identifier",
+                        "required": true,
+                        "deprecated": false,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "style": "simple",
+                        "explode": false
+                    }
+                ]
+            }
+        },
+        "/api/specialties": {
+            "get": {
+                "operationId": "api_specialties_get_collection",
+                "tags": [
+                    "Specialty"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Specialty collection",
+                        "content": {
+                            "application/ld+json": {
+                                "schema": {
+                                    "type": "object",
+                                    "description": "Specialty.jsonld-specialty.read collection.",
+                                    "allOf": [
+                                        {
+                                            "$ref": "#/components/schemas/HydraCollectionBaseSchemaNoPagination"
+                                        },
+                                        {
+                                            "type": "object",
+                                            "required": [
+                                                "member"
+                                            ],
+                                            "properties": {
+                                                "member": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "$ref": "#/components/schemas/Specialty.jsonld-specialty.read"
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    ]
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/Specialty-specialty.read"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "summary": "Retrieves the collection of Specialty resources.",
+                "description": "Retrieves the collection of Specialty resources.",
+                "parameters": []
+            }
+        },
+        "/api/specialties/{slug}": {
+            "get": {
+                "operationId": "api_specialties_slug_get",
+                "tags": [
+                    "Specialty"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Specialty resource",
+                        "content": {
+                            "application/ld+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Specialty.jsonld-specialty.read"
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Specialty-specialty.read"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not found",
+                        "content": {
+                            "application/ld+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error.jsonld"
+                                }
+                            },
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        },
+                        "links": {}
+                    }
+                },
+                "summary": "Retrieves a Specialty resource.",
+                "description": "Retrieves a Specialty resource.",
+                "parameters": [
+                    {
+                        "name": "slug",
+                        "in": "path",
+                        "description": "Specialty identifier",
+                        "required": true,
+                        "deprecated": false,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "style": "simple",
+                        "explode": false
+                    }
+                ]
+            }
+        },
+        "/api/subscription-plans": {
+            "get": {
+                "operationId": "api_subscription-plans_get_collection",
+                "tags": [
+                    "SubscriptionPlan"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "SubscriptionPlan collection",
+                        "content": {
+                            "application/ld+json": {
+                                "schema": {
+                                    "type": "object",
+                                    "description": "SubscriptionPlan.jsonld-plan.read collection.",
+                                    "allOf": [
+                                        {
+                                            "$ref": "#/components/schemas/HydraCollectionBaseSchemaNoPagination"
+                                        },
+                                        {
+                                            "type": "object",
+                                            "required": [
+                                                "member"
+                                            ],
+                                            "properties": {
+                                                "member": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "$ref": "#/components/schemas/SubscriptionPlan.jsonld-plan.read"
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    ]
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/SubscriptionPlan-plan.read"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "summary": "Retrieves the collection of SubscriptionPlan resources.",
+                "description": "Retrieves the collection of SubscriptionPlan resources.",
+                "parameters": []
+            }
+        },
+        "/api/subscription-plans/{code}": {
+            "get": {
+                "operationId": "api_subscription-plans_code_get",
+                "tags": [
+                    "SubscriptionPlan"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "SubscriptionPlan resource",
+                        "content": {
+                            "application/ld+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SubscriptionPlan.jsonld-plan.read"
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SubscriptionPlan-plan.read"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not found",
+                        "content": {
+                            "application/ld+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error.jsonld"
+                                }
+                            },
+                            "application/problem+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        },
+                        "links": {}
+                    }
+                },
+                "summary": "Retrieves a SubscriptionPlan resource.",
+                "description": "Retrieves a SubscriptionPlan resource.",
+                "parameters": [
+                    {
+                        "name": "code",
+                        "in": "path",
+                        "description": "SubscriptionPlan identifier",
+                        "required": true,
+                        "deprecated": false,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "style": "simple",
+                        "explode": false
+                    }
+                ]
+            }
+        }
+    },
+    "components": {
+        "schemas": {
+            "City-city.read": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "readOnly": true,
+                        "type": "integer"
+                    },
+                    "region": {
+                        "$ref": "#/components/schemas/Region-city.read"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "latitude": {
+                        "type": [
+                            "number",
+                            "null"
+                        ]
+                    },
+                    "longitude": {
+                        "type": [
+                            "number",
+                            "null"
+                        ]
+                    }
+                }
+            },
+            "City.jsonld-city.read": {
+                "allOf": [
+                    {
+                        "$ref": "#/components/schemas/HydraItemBaseSchema"
+                    },
+                    {
+                        "type": "object",
+                        "properties": {
+                            "id": {
+                                "readOnly": true,
+                                "type": "integer"
+                            },
+                            "region": {
+                                "$ref": "#/components/schemas/Region.jsonld-city.read"
+                            },
+                            "name": {
+                                "type": "string"
+                            },
+                            "latitude": {
+                                "type": [
+                                    "number",
+                                    "null"
+                                ]
+                            },
+                            "longitude": {
+                                "type": [
+                                    "number",
+                                    "null"
+                                ]
+                            }
+                        }
+                    }
+                ]
+            },
+            "Country-country.read": {
+                "type": "object",
+                "description": "Pays couvert par la plateforme. Ajouter un pays = ajouter une ligne en base, aucun code en dur.",
+                "properties": {
+                    "code": {
+                        "description": "Code ISO 3166-1 alpha-2 (ML, BF, NE), sert d'identifiant dans l'API.",
+                        "type": "string"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "capital": {
+                        "type": "string"
+                    },
+                    "timezone": {
+                        "description": "Fuseau IANA : Africa/Bamako, Africa/Ouagadougou, Africa/Niamey.",
+                        "type": "string"
+                    },
+                    "phonePrefix": {
+                        "type": "string"
+                    },
+                    "currency": {
+                        "readOnly": true,
+                        "default": "XOF",
+                        "type": "string"
+                    },
+                    "languages": {
+                        "description": "Langues courantes (codes ISO 639) : fr, bm, mos, ha, dje, ff.",
+                        "type": "array",
+                        "items": {
+                            "type": [
+                                "string",
+                                "null"
+                            ]
+                        }
+                    },
+                    "active": {
+                        "readOnly": true,
+                        "default": true,
+                        "type": "boolean"
+                    }
+                }
+            },
+            "Country-region.read": {
+                "type": "object",
+                "properties": {
+                    "code": {
+                        "description": "Code ISO 3166-1 alpha-2 (ML, BF, NE), sert d'identifiant dans l'API.",
+                        "type": "string"
+                    },
+                    "name": {
+                        "type": "string"
+                    }
+                }
+            },
+            "Country.jsonld-country.read": {
+                "allOf": [
+                    {
+                        "$ref": "#/components/schemas/HydraItemBaseSchema"
+                    },
+                    {
+                        "type": "object",
+                        "properties": {
+                            "code": {
+                                "description": "Code ISO 3166-1 alpha-2 (ML, BF, NE), sert d'identifiant dans l'API.",
+                                "type": "string"
+                            },
+                            "name": {
+                                "type": "string"
+                            },
+                            "capital": {
+                                "type": "string"
+                            },
+                            "timezone": {
+                                "description": "Fuseau IANA : Africa/Bamako, Africa/Ouagadougou, Africa/Niamey.",
+                                "type": "string"
+                            },
+                            "phonePrefix": {
+                                "type": "string"
+                            },
+                            "currency": {
+                                "readOnly": true,
+                                "default": "XOF",
+                                "type": "string"
+                            },
+                            "languages": {
+                                "description": "Langues courantes (codes ISO 639) : fr, bm, mos, ha, dje, ff.",
+                                "type": "array",
+                                "items": {
+                                    "type": [
+                                        "string",
+                                        "null"
+                                    ]
+                                }
+                            },
+                            "active": {
+                                "readOnly": true,
+                                "default": true,
+                                "type": "boolean"
+                            }
+                        }
+                    }
+                ],
+                "description": "Pays couvert par la plateforme. Ajouter un pays = ajouter une ligne en base, aucun code en dur."
+            },
+            "Country.jsonld-region.read": {
+                "allOf": [
+                    {
+                        "$ref": "#/components/schemas/HydraItemBaseSchema"
+                    },
+                    {
+                        "type": "object",
+                        "properties": {
+                            "code": {
+                                "description": "Code ISO 3166-1 alpha-2 (ML, BF, NE), sert d'identifiant dans l'API.",
+                                "type": "string"
+                            },
+                            "name": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                ],
+                "description": "Pays couvert par la plateforme. Ajouter un pays = ajouter une ligne en base, aucun code en dur."
+            },
+            "Error": {
+                "type": "object",
+                "properties": {
+                    "error": {
+                        "type": "string",
+                        "example": "Ce cr\u00e9neau n'est plus disponible."
+                    },
+                    "code": {
+                        "type": "string",
+                        "example": "consent_required"
+                    }
+                },
+                "required": [
+                    "error"
+                ]
+            },
+            "Error.jsonld": {
+                "allOf": [
+                    {
+                        "$ref": "#/components/schemas/HydraItemBaseSchema"
+                    },
+                    {
+                        "type": "object",
+                        "properties": {
+                            "title": {
+                                "readOnly": true,
+                                "description": "A short, human-readable summary of the problem.",
+                                "type": [
+                                    "string",
+                                    "null"
+                                ]
+                            },
+                            "detail": {
+                                "readOnly": true,
+                                "description": "A human-readable explanation specific to this occurrence of the problem.",
+                                "type": [
+                                    "string",
+                                    "null"
+                                ]
+                            },
+                            "status": {
+                                "type": [
+                                    "integer",
+                                    "null"
+                                ],
+                                "examples": [
+                                    404
+                                ],
+                                "default": 400
+                            },
+                            "instance": {
+                                "readOnly": true,
+                                "description": "A URI reference that identifies the specific occurrence of the problem. It may or may not yield further information if dereferenced.",
+                                "type": [
+                                    "string",
+                                    "null"
+                                ]
+                            },
+                            "type": {
+                                "readOnly": true,
+                                "description": "A URI reference that identifies the problem type",
+                                "type": "string"
+                            },
+                            "description": {
+                                "readOnly": true,
+                                "type": [
+                                    "string",
+                                    "null"
+                                ]
+                            }
+                        }
+                    }
+                ],
+                "description": "A representation of common errors."
+            },
+            "Facility-facility.read": {
+                "type": "object",
+                "description": "Structure de sant\u00e9 : h\u00f4pital, clinique, cabinet ou centre de sant\u00e9.",
+                "properties": {
+                    "id": {
+                        "readOnly": true,
+                        "type": "integer"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "type": {
+                        "type": "string",
+                        "enum": [
+                            "hospital",
+                            "clinic",
+                            "office",
+                            "health_center"
+                        ]
+                    },
+                    "city": {
+                        "type": "string",
+                        "format": "iri-reference",
+                        "example": "https://example.com/"
+                    },
+                    "address": {
+                        "type": "string"
+                    },
+                    "phone": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "latitude": {
+                        "readOnly": true,
+                        "type": [
+                            "number",
+                            "null"
+                        ]
+                    },
+                    "longitude": {
+                        "readOnly": true,
+                        "type": [
+                            "number",
+                            "null"
+                        ]
+                    }
+                }
+            },
+            "Facility.jsonld-facility.read": {
+                "allOf": [
+                    {
+                        "$ref": "#/components/schemas/HydraItemBaseSchema"
+                    },
+                    {
+                        "type": "object",
+                        "properties": {
+                            "id": {
+                                "readOnly": true,
+                                "type": "integer"
+                            },
+                            "name": {
+                                "type": "string"
+                            },
+                            "type": {
+                                "type": "string",
+                                "enum": [
+                                    "hospital",
+                                    "clinic",
+                                    "office",
+                                    "health_center"
+                                ]
+                            },
+                            "city": {
+                                "type": "string",
+                                "format": "iri-reference",
+                                "example": "https://example.com/"
+                            },
+                            "address": {
+                                "type": "string"
+                            },
+                            "phone": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ]
+                            },
+                            "latitude": {
+                                "readOnly": true,
+                                "type": [
+                                    "number",
+                                    "null"
+                                ]
+                            },
+                            "longitude": {
+                                "readOnly": true,
+                                "type": [
+                                    "number",
+                                    "null"
+                                ]
+                            }
+                        }
+                    }
+                ],
+                "description": "Structure de sant\u00e9 : h\u00f4pital, clinique, cabinet ou centre de sant\u00e9."
+            },
+            "HydraCollectionBaseSchema": {
+                "allOf": [
+                    {
+                        "$ref": "#/components/schemas/HydraCollectionBaseSchemaNoPagination"
+                    },
+                    {
+                        "type": "object",
+                        "properties": {
+                            "view": {
+                                "type": "object",
+                                "properties": {
+                                    "@id": {
+                                        "type": "string",
+                                        "format": "iri-reference"
+                                    },
+                                    "@type": {
+                                        "type": "string"
+                                    },
+                                    "first": {
+                                        "type": [
+                                            "string",
+                                            "null"
+                                        ],
+                                        "format": "iri-reference"
+                                    },
+                                    "last": {
+                                        "type": [
+                                            "string",
+                                            "null"
+                                        ],
+                                        "format": "iri-reference"
+                                    },
+                                    "previous": {
+                                        "type": [
+                                            "string",
+                                            "null"
+                                        ],
+                                        "format": "iri-reference"
+                                    },
+                                    "next": {
+                                        "type": [
+                                            "string",
+                                            "null"
+                                        ],
+                                        "format": "iri-reference"
+                                    }
+                                },
+                                "example": {
+                                    "@id": "string",
+                                    "@type": "string",
+                                    "first": "string",
+                                    "last": "string",
+                                    "previous": "string",
+                                    "next": "string"
+                                }
+                            }
+                        }
+                    }
+                ]
+            },
+            "HydraCollectionBaseSchemaNoPagination": {
+                "type": "object",
+                "properties": {
+                    "totalItems": {
+                        "type": "integer",
+                        "minimum": 0
+                    },
+                    "search": {
+                        "type": "object",
+                        "properties": {
+                            "@type": {
+                                "type": "string"
+                            },
+                            "template": {
+                                "type": "string"
+                            },
+                            "variableRepresentation": {
+                                "type": "string"
+                            },
+                            "mapping": {
+                                "type": "array",
+                                "items": {
+                                    "type": "object",
+                                    "properties": {
+                                        "@type": {
+                                            "type": "string"
+                                        },
+                                        "variable": {
+                                            "type": "string"
+                                        },
+                                        "property": {
+                                            "type": [
+                                                "string",
+                                                "null"
+                                            ]
+                                        },
+                                        "required": {
+                                            "type": "boolean"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "HydraItemBaseSchema": {
+                "type": "object",
+                "properties": {
+                    "@context": {
+                        "oneOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "object",
+                                "properties": {
+                                    "@vocab": {
+                                        "type": "string"
+                                    },
+                                    "hydra": {
+                                        "type": "string",
+                                        "enum": [
+                                            "http://www.w3.org/ns/hydra/core#"
+                                        ]
+                                    }
+                                },
+                                "required": [
+                                    "@vocab",
+                                    "hydra"
+                                ],
+                                "additionalProperties": true
+                            }
+                        ]
+                    },
+                    "@id": {
+                        "type": "string"
+                    },
+                    "@type": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "@id",
+                    "@type"
+                ]
+            },
+            "Region-city.read": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "readOnly": true,
+                        "type": "integer"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "slug": {
+                        "type": "string"
+                    }
+                }
+            },
+            "Region-region.read": {
+                "type": "object",
+                "description": "R\u00e9gion administrative. Les d\u00e9coupages ont chang\u00e9 r\u00e9cemment (Mali 2023, Burkina Faso 2025) :\nchaque r\u00e9gion reste \"provisional\" tant qu'elle n'est pas valid\u00e9e avec le minist\u00e8re de la sant\u00e9.",
+                "properties": {
+                    "id": {
+                        "readOnly": true,
+                        "type": "integer"
+                    },
+                    "country": {
+                        "$ref": "#/components/schemas/Country-region.read"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "slug": {
+                        "type": "string"
+                    },
+                    "capital": {
+                        "description": "Chef-lieu.",
+                        "type": "string"
+                    },
+                    "formerName": {
+                        "description": "Ancien nom (ex. \"Hauts-Bassins\" pour Guiriko), utile \u00e0 la recherche pendant la transition.",
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "provisional": {
+                        "default": true,
+                        "type": "boolean"
+                    }
+                }
+            },
+            "Region.jsonld-city.read": {
+                "allOf": [
+                    {
+                        "$ref": "#/components/schemas/HydraItemBaseSchema"
+                    },
+                    {
+                        "type": "object",
+                        "properties": {
+                            "id": {
+                                "readOnly": true,
+                                "type": "integer"
+                            },
+                            "name": {
+                                "type": "string"
+                            },
+                            "slug": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                ],
+                "description": "R\u00e9gion administrative. Les d\u00e9coupages ont chang\u00e9 r\u00e9cemment (Mali 2023, Burkina Faso 2025) :\nchaque r\u00e9gion reste \"provisional\" tant qu'elle n'est pas valid\u00e9e avec le minist\u00e8re de la sant\u00e9."
+            },
+            "Region.jsonld-region.read": {
+                "allOf": [
+                    {
+                        "$ref": "#/components/schemas/HydraItemBaseSchema"
+                    },
+                    {
+                        "type": "object",
+                        "properties": {
+                            "id": {
+                                "readOnly": true,
+                                "type": "integer"
+                            },
+                            "country": {
+                                "$ref": "#/components/schemas/Country.jsonld-region.read"
+                            },
+                            "name": {
+                                "type": "string"
+                            },
+                            "slug": {
+                                "type": "string"
+                            },
+                            "capital": {
+                                "description": "Chef-lieu.",
+                                "type": "string"
+                            },
+                            "formerName": {
+                                "description": "Ancien nom (ex. \"Hauts-Bassins\" pour Guiriko), utile \u00e0 la recherche pendant la transition.",
+                                "type": [
+                                    "string",
+                                    "null"
+                                ]
+                            },
+                            "provisional": {
+                                "default": true,
+                                "type": "boolean"
+                            }
+                        }
+                    }
+                ],
+                "description": "R\u00e9gion administrative. Les d\u00e9coupages ont chang\u00e9 r\u00e9cemment (Mali 2023, Burkina Faso 2025) :\nchaque r\u00e9gion reste \"provisional\" tant qu'elle n'est pas valid\u00e9e avec le minist\u00e8re de la sant\u00e9."
+            },
+            "Specialty-specialty.read": {
+                "type": "object",
+                "properties": {
+                    "slug": {
+                        "type": "string"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "icon": {
+                        "description": "Nom d'ic\u00f4ne c\u00f4t\u00e9 front (heart, child, tooth...).",
+                        "type": "string"
+                    },
+                    "translations": {
+                        "description": "Traductions du libell\u00e9 : {\"en\": \"...\", \"ar\": \"...\"}. Le fran\u00e7ais est la langue de base.",
+                        "type": "array",
+                        "items": {
+                            "type": [
+                                "string",
+                                "null"
+                            ]
+                        }
+                    }
+                }
+            },
+            "Specialty.jsonld-specialty.read": {
+                "allOf": [
+                    {
+                        "$ref": "#/components/schemas/HydraItemBaseSchema"
+                    },
+                    {
+                        "type": "object",
+                        "properties": {
+                            "slug": {
+                                "type": "string"
+                            },
+                            "name": {
+                                "type": "string"
+                            },
+                            "icon": {
+                                "description": "Nom d'ic\u00f4ne c\u00f4t\u00e9 front (heart, child, tooth...).",
+                                "type": "string"
+                            },
+                            "translations": {
+                                "description": "Traductions du libell\u00e9 : {\"en\": \"...\", \"ar\": \"...\"}. Le fran\u00e7ais est la langue de base.",
+                                "type": "array",
+                                "items": {
+                                    "type": [
+                                        "string",
+                                        "null"
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                ]
+            },
+            "SubscriptionPlan-plan.read": {
+                "type": "object",
+                "description": "Formule d'abonnement praticien (publication sur la plateforme). Tarifs en base : modifiables sans d\u00e9ploiement.\nFormules initiales : semestre 6 000 FCFA, ann\u00e9e 10 000 FCFA.",
+                "properties": {
+                    "code": {
+                        "description": "semester, annual",
+                        "type": "string"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "durationMonths": {
+                        "type": "integer"
+                    },
+                    "price": {
+                        "description": "Prix en francs CFA (XOF).",
+                        "type": "integer"
+                    },
+                    "currency": {
+                        "readOnly": true,
+                        "default": "XOF",
+                        "type": "string"
+                    },
+                    "active": {
+                        "readOnly": true,
+                        "default": true,
+                        "type": "boolean"
+                    },
+                    "monthlyPrice": {
+                        "readOnly": true,
+                        "description": "Prix ramen\u00e9 au mois, pour comparer les formules (arrondi).",
+                        "type": "integer"
+                    }
+                }
+            },
+            "SubscriptionPlan.jsonld-plan.read": {
+                "allOf": [
+                    {
+                        "$ref": "#/components/schemas/HydraItemBaseSchema"
+                    },
+                    {
+                        "type": "object",
+                        "properties": {
+                            "code": {
+                                "description": "semester, annual",
+                                "type": "string"
+                            },
+                            "name": {
+                                "type": "string"
+                            },
+                            "durationMonths": {
+                                "type": "integer"
+                            },
+                            "price": {
+                                "description": "Prix en francs CFA (XOF).",
+                                "type": "integer"
+                            },
+                            "currency": {
+                                "readOnly": true,
+                                "default": "XOF",
+                                "type": "string"
+                            },
+                            "active": {
+                                "readOnly": true,
+                                "default": true,
+                                "type": "boolean"
+                            },
+                            "monthlyPrice": {
+                                "readOnly": true,
+                                "description": "Prix ramen\u00e9 au mois, pour comparer les formules (arrondi).",
+                                "type": "integer"
+                            }
+                        }
+                    }
+                ],
+                "description": "Formule d'abonnement praticien (publication sur la plateforme). Tarifs en base : modifiables sans d\u00e9ploiement.\nFormules initiales : semestre 6 000 FCFA, ann\u00e9e 10 000 FCFA."
+            },
+            "Ok": {
+                "type": "object",
+                "properties": {
+                    "ok": {
+                        "type": "boolean"
+                    }
+                }
+            },
+            "OtpRequest": {
+                "type": "object",
+                "properties": {
+                    "phone": {
+                        "type": "string",
+                        "example": "70 00 00 01",
+                        "description": "SMS : 8 chiffres (avec country) ou format international +223\u2026"
+                    },
+                    "country": {
+                        "type": "string",
+                        "enum": [
+                            "ML",
+                            "BF",
+                            "NE"
+                        ],
+                        "example": "ML",
+                        "description": "Pays pour compl\u00e9ter l'indicatif"
+                    },
+                    "email": {
+                        "type": "string",
+                        "format": "email",
+                        "example": "awa.traore@gmail.com",
+                        "description": "Email : \u00e0 la place de phone"
+                    }
+                }
+            },
+            "OtpRequested": {
+                "type": "object",
+                "properties": {
+                    "channel": {
+                        "type": "string",
+                        "enum": [
+                            "sms",
+                            "email"
+                        ]
+                    },
+                    "maskedDestination": {
+                        "type": "string",
+                        "example": "aw\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022@gmail.com"
+                    },
+                    "email": {
+                        "type": "string"
+                    },
+                    "phone": {
+                        "type": "string",
+                        "example": "+22370000001"
+                    },
+                    "maskedPhone": {
+                        "type": "string",
+                        "example": "+223 \u2022\u2022 \u2022\u2022 00 01"
+                    },
+                    "expiresIn": {
+                        "type": "integer",
+                        "example": 600
+                    },
+                    "devCode": {
+                        "type": "string",
+                        "example": "482913",
+                        "description": "Environnement dev uniquement"
+                    }
+                }
+            },
+            "OtpVerify": {
+                "type": "object",
+                "properties": {
+                    "phone": {
+                        "type": "string",
+                        "example": "+22370000001"
+                    },
+                    "country": {
+                        "type": "string",
+                        "enum": [
+                            "ML",
+                            "BF",
+                            "NE"
+                        ],
+                        "example": "ML"
+                    },
+                    "email": {
+                        "type": "string",
+                        "format": "email"
+                    },
+                    "code": {
+                        "type": "string",
+                        "example": "482913"
+                    }
+                },
+                "required": [
+                    "code"
+                ]
+            },
+            "OAuthProviders": {
+                "type": "array",
+                "items": {
+                    "type": "object",
+                    "properties": {
+                        "id": {
+                            "type": "string",
+                            "enum": [
+                                "google",
+                                "github"
+                            ]
+                        },
+                        "name": {
+                            "type": "string"
+                        },
+                        "configured": {
+                            "type": "boolean"
+                        }
+                    }
+                }
+            },
+            "OAuthExchange": {
+                "type": "object",
+                "properties": {
+                    "code": {
+                        "type": "string"
+                    },
+                    "nonce": {
+                        "type": "string",
+                        "description": "Nonce pass\u00e9 \u00e0 /api/auth/oauth/{provider}"
+                    }
+                },
+                "required": [
+                    "code",
+                    "nonce"
+                ]
+            },
+            "EmailInput": {
+                "type": "object",
+                "properties": {
+                    "email": {
+                        "type": "string",
+                        "format": "email",
+                        "example": "awa.traore@gmail.com"
+                    },
+                    "code": {
+                        "type": "string",
+                        "example": "482913"
+                    }
+                },
+                "required": [
+                    "email",
+                    "code"
+                ]
+            },
+            "PhoneInput": {
+                "type": "object",
+                "properties": {
+                    "phone": {
+                        "type": "string",
+                        "example": "76 11 22 33"
+                    },
+                    "country": {
+                        "type": "string",
+                        "enum": [
+                            "ML",
+                            "BF",
+                            "NE"
+                        ],
+                        "example": "ML"
+                    },
+                    "code": {
+                        "type": "string",
+                        "example": "482913"
+                    }
+                },
+                "required": [
+                    "phone",
+                    "code"
+                ]
+            },
+            "SubscriptionOrder": {
+                "type": "object",
+                "properties": {
+                    "plan": {
+                        "type": "string",
+                        "enum": [
+                            "semester",
+                            "annual"
+                        ],
+                        "description": "semester = 6 000 FCFA / 6 mois, annual = 10 000 FCFA / 12 mois"
+                    },
+                    "method": {
+                        "type": "string",
+                        "enum": [
+                            "orange_money",
+                            "moov_money",
+                            "wave",
+                            "airtel_money",
+                            "cash"
+                        ]
+                    }
+                },
+                "required": [
+                    "plan",
+                    "method"
+                ]
+            },
+            "PaymentConfirmation": {
+                "type": "object",
+                "properties": {
+                    "transactionId": {
+                        "type": "string",
+                        "description": "Identifiant de transaction de l'op\u00e9rateur (facultatif)",
+                        "example": "MP241007.1532.A12345"
+                    }
+                }
+            },
+            "Subscription": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "reference": {
+                        "type": "string",
+                        "example": "AD-7K3F9Q"
+                    },
+                    "plan": {
+                        "type": "object",
+                        "properties": {
+                            "code": {
+                                "type": "string"
+                            },
+                            "name": {
+                                "type": "string"
+                            },
+                            "durationMonths": {
+                                "type": "integer"
+                            }
+                        }
+                    },
+                    "amount": {
+                        "type": "integer",
+                        "example": 10000
+                    },
+                    "currency": {
+                        "type": "string",
+                        "example": "XOF"
+                    },
+                    "status": {
+                        "type": "string",
+                        "enum": [
+                            "pending",
+                            "paid",
+                            "cancelled"
+                        ]
+                    },
+                    "paymentMethod": {
+                        "type": "string"
+                    },
+                    "paymentMethodLabel": {
+                        "type": "string"
+                    },
+                    "transactionId": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "startsAt": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "date-time"
+                    },
+                    "endsAt": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "date-time"
+                    },
+                    "createdAt": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "paidAt": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "date-time"
+                    },
+                    "practitioner": {
+                        "type": "object",
+                        "properties": {
+                            "id": {
+                                "type": "integer"
+                            },
+                            "slug": {
+                                "type": "string"
+                            },
+                            "fullName": {
+                                "type": "string"
+                            },
+                            "phone": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ]
+                            },
+                            "city": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ]
+                            },
+                            "country": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ]
+                            },
+                            "publishedUntil": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ]
+                            }
+                        },
+                        "description": "Administration uniquement"
+                    }
+                }
+            },
+            "SubscriptionStatus": {
+                "type": "object",
+                "properties": {
+                    "verified": {
+                        "type": "boolean"
+                    },
+                    "published": {
+                        "type": "boolean"
+                    },
+                    "activeSubscription": {
+                        "type": "boolean"
+                    },
+                    "publishedUntil": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "date-time"
+                    },
+                    "daysLeft": {
+                        "type": "integer"
+                    },
+                    "plans": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "code": {
+                                    "type": "string"
+                                },
+                                "name": {
+                                    "type": "string"
+                                },
+                                "durationMonths": {
+                                    "type": "integer"
+                                },
+                                "price": {
+                                    "type": "integer"
+                                },
+                                "monthlyPrice": {
+                                    "type": "integer"
+                                },
+                                "currency": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    },
+                    "methods": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "code": {
+                                    "type": "string"
+                                },
+                                "label": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    },
+                    "paymentAccount": {
+                        "type": "object",
+                        "additionalProperties": {
+                            "type": "string"
+                        },
+                        "description": "Titulaire et num\u00e9ros marchands du pays"
+                    },
+                    "pending": {
+                        "oneOf": [
+                            {
+                                "type": "null"
+                            },
+                            {
+                                "$ref": "#/components/schemas/Subscription"
+                            }
+                        ]
+                    },
+                    "history": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/Subscription"
+                        }
+                    },
+                    "canSimulatePayment": {
+                        "type": "boolean"
+                    }
+                }
+            },
+            "AdminSubscriptions": {
+                "type": "object",
+                "properties": {
+                    "status": {
+                        "type": "string"
+                    },
+                    "total": {
+                        "type": "integer",
+                        "description": "Somme des montants (FCFA)"
+                    },
+                    "items": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/Subscription"
+                        }
+                    }
+                }
+            },
+            "AuthToken": {
+                "type": "object",
+                "properties": {
+                    "token": {
+                        "type": "string"
+                    },
+                    "user": {
+                        "$ref": "#/components/schemas/User"
+                    }
+                }
+            },
+            "Relative": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "integer"
+                    },
+                    "firstName": {
+                        "type": "string"
+                    },
+                    "lastName": {
+                        "type": "string"
+                    },
+                    "relation": {
+                        "type": "string",
+                        "enum": [
+                            "enfant",
+                            "parent",
+                            "conjoint",
+                            "autre"
+                        ]
+                    },
+                    "birthDate": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "date"
+                    }
+                }
+            },
+            "RelativeInput": {
+                "type": "object",
+                "properties": {
+                    "firstName": {
+                        "type": "string"
+                    },
+                    "lastName": {
+                        "type": "string"
+                    },
+                    "relation": {
+                        "type": "string",
+                        "enum": [
+                            "enfant",
+                            "parent",
+                            "conjoint",
+                            "autre"
+                        ]
+                    },
+                    "birthDate": {
+                        "type": "string",
+                        "format": "date"
+                    }
+                },
+                "required": [
+                    "firstName",
+                    "lastName",
+                    "relation"
+                ]
+            },
+            "User": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "integer"
+                    },
+                    "phone": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "description": "null tant qu'aucun num\u00e9ro n'est v\u00e9rifi\u00e9 (compte email, Google ou GitHub)"
+                    },
+                    "email": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "emailVerified": {
+                        "type": "boolean"
+                    },
+                    "linkedAccounts": {
+                        "type": "array",
+                        "items": {
+                            "type": "string",
+                            "enum": [
+                                "google",
+                                "github"
+                            ]
+                        }
+                    },
+                    "firstName": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "lastName": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "locale": {
+                        "type": "string"
+                    },
+                    "roles": {
+                        "type": "array",
+                        "items": {
+                            "type": "string",
+                            "enum": [
+                                "ROLE_PATIENT",
+                                "ROLE_PRACTITIONER",
+                                "ROLE_COUNTRY_ADMIN",
+                                "ROLE_SUPER_ADMIN"
+                            ]
+                        }
+                    },
+                    "consent": {
+                        "type": "boolean"
+                    },
+                    "adminCountry": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "relatives": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/Relative"
+                        }
+                    }
+                }
+            },
+            "UserUpdate": {
+                "type": "object",
+                "properties": {
+                    "firstName": {
+                        "type": "string"
+                    },
+                    "lastName": {
+                        "type": "string"
+                    },
+                    "email": {
+                        "type": "string"
+                    },
+                    "locale": {
+                        "type": "string",
+                        "enum": [
+                            "fr",
+                            "en",
+                            "ar"
+                        ]
+                    },
+                    "consent": {
+                        "type": "boolean"
+                    }
+                }
+            },
+            "Facility": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "integer"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "type": {
+                        "type": "string",
+                        "enum": [
+                            "hospital",
+                            "clinic",
+                            "office",
+                            "health_center"
+                        ]
+                    },
+                    "typeLabel": {
+                        "type": "string"
+                    },
+                    "address": {
+                        "type": "string"
+                    },
+                    "phone": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "latitude": {
+                        "type": [
+                            "number",
+                            "null"
+                        ]
+                    },
+                    "longitude": {
+                        "type": [
+                            "number",
+                            "null"
+                        ]
+                    },
+                    "city": {
+                        "type": "string"
+                    },
+                    "region": {
+                        "type": "object",
+                        "properties": {
+                            "slug": {
+                                "type": "string"
+                            },
+                            "name": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "country": {
+                        "type": "object",
+                        "properties": {
+                            "code": {
+                                "type": "string",
+                                "enum": [
+                                    "ML",
+                                    "BF",
+                                    "NE"
+                                ],
+                                "example": "ML"
+                            },
+                            "name": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "timezone": {
+                        "type": "string",
+                        "example": "Africa/Bamako"
+                    }
+                }
+            },
+            "PractitionerSummary": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "integer"
+                    },
+                    "slug": {
+                        "type": "string"
+                    },
+                    "title": {
+                        "type": "string"
+                    },
+                    "firstName": {
+                        "type": "string"
+                    },
+                    "lastName": {
+                        "type": "string"
+                    },
+                    "fullName": {
+                        "type": "string"
+                    },
+                    "gender": {
+                        "type": "string",
+                        "enum": [
+                            "M",
+                            "F"
+                        ]
+                    },
+                    "photoUrl": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "fee": {
+                        "type": "integer",
+                        "description": "Tarif en FCFA"
+                    },
+                    "teleconsultation": {
+                        "type": "boolean"
+                    },
+                    "acceptsNewPatients": {
+                        "type": "boolean"
+                    },
+                    "languages": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "code": {
+                                    "type": "string"
+                                },
+                                "name": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    },
+                    "insurances": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "specialties": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "slug": {
+                                    "type": "string"
+                                },
+                                "name": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    },
+                    "facility": {
+                        "$ref": "#/components/schemas/Facility"
+                    }
+                }
+            },
+            "PractitionerDetail": {
+                "allOf": [
+                    {
+                        "$ref": "#/components/schemas/PractitionerSummary"
+                    },
+                    {
+                        "type": "object",
+                        "properties": {
+                            "bio": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ]
+                            },
+                            "degrees": {
+                                "type": "array",
+                                "items": {
+                                    "type": "string"
+                                }
+                            },
+                            "orderNumber": {
+                                "type": "string"
+                            },
+                            "verified": {
+                                "type": "boolean"
+                            },
+                            "facilities": {
+                                "type": "array",
+                                "items": {
+                                    "$ref": "#/components/schemas/Facility"
+                                }
+                            },
+                            "openingHours": {
+                                "type": "array",
+                                "items": {
+                                    "type": "object",
+                                    "properties": {
+                                        "dayOfWeek": {
+                                            "type": "integer",
+                                            "description": "1 = lundi \u2026 7 = dimanche"
+                                        },
+                                        "start": {
+                                            "type": "string"
+                                        },
+                                        "end": {
+                                            "type": "string"
+                                        },
+                                        "facilityId": {
+                                            "type": "integer"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                ]
+            },
+            "Slot": {
+                "type": "object",
+                "properties": {
+                    "start": {
+                        "type": "string",
+                        "format": "date-time",
+                        "description": "Instant UTC \u00e0 renvoyer tel quel \u00e0 la r\u00e9servation"
+                    },
+                    "time": {
+                        "type": "string",
+                        "example": "08:30",
+                        "description": "Heure locale"
+                    },
+                    "facilityId": {
+                        "type": "integer"
+                    }
+                }
+            },
+            "SlotDay": {
+                "type": "object",
+                "properties": {
+                    "date": {
+                        "type": "string",
+                        "format": "date",
+                        "description": "Date locale du pays"
+                    },
+                    "slots": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/Slot"
+                        }
+                    }
+                }
+            },
+            "SlotDays": {
+                "type": "object",
+                "properties": {
+                    "days": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/SlotDay"
+                        }
+                    }
+                }
+            },
+            "SearchItem": {
+                "allOf": [
+                    {
+                        "$ref": "#/components/schemas/PractitionerSummary"
+                    },
+                    {
+                        "type": "object",
+                        "properties": {
+                            "availability": {
+                                "type": "array",
+                                "items": {
+                                    "$ref": "#/components/schemas/SlotDay"
+                                }
+                            },
+                            "nextAvailability": {
+                                "oneOf": [
+                                    {
+                                        "type": "null"
+                                    },
+                                    {
+                                        "type": "object",
+                                        "properties": {
+                                            "date": {
+                                                "type": "string"
+                                            },
+                                            "time": {
+                                                "type": "string"
+                                            },
+                                            "start": {
+                                                "type": "string"
+                                            }
+                                        }
+                                    }
+                                ]
+                            }
+                        }
+                    }
+                ]
+            },
+            "SearchResult": {
+                "type": "object",
+                "properties": {
+                    "total": {
+                        "type": "integer"
+                    },
+                    "page": {
+                        "type": "integer"
+                    },
+                    "perPage": {
+                        "type": "integer"
+                    },
+                    "pages": {
+                        "type": "integer"
+                    },
+                    "items": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/SearchItem"
+                        }
+                    }
+                }
+            },
+            "CountryOverview": {
+                "type": "object",
+                "properties": {
+                    "country": {
+                        "type": "object",
+                        "properties": {
+                            "code": {
+                                "type": "string",
+                                "enum": [
+                                    "ML",
+                                    "BF",
+                                    "NE"
+                                ],
+                                "example": "ML"
+                            },
+                            "name": {
+                                "type": "string"
+                            },
+                            "capital": {
+                                "type": "string"
+                            },
+                            "timezone": {
+                                "type": "string"
+                            },
+                            "phonePrefix": {
+                                "type": "string"
+                            },
+                            "languages": {
+                                "type": "array",
+                                "items": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    },
+                    "practitionerCount": {
+                        "type": "integer"
+                    },
+                    "regions": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "id": {
+                                    "type": "integer"
+                                },
+                                "slug": {
+                                    "type": "string"
+                                },
+                                "name": {
+                                    "type": "string"
+                                },
+                                "capital": {
+                                    "type": "string"
+                                },
+                                "formerName": {
+                                    "type": [
+                                        "string",
+                                        "null"
+                                    ]
+                                },
+                                "provisional": {
+                                    "type": "boolean"
+                                },
+                                "practitionerCount": {
+                                    "type": "integer"
+                                }
+                            }
+                        }
+                    },
+                    "specialties": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "slug": {
+                                    "type": "string"
+                                },
+                                "name": {
+                                    "type": "string"
+                                },
+                                "icon": {
+                                    "type": "string"
+                                },
+                                "practitionerCount": {
+                                    "type": "integer"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "BookingInput": {
+                "type": "object",
+                "properties": {
+                    "practitioner": {
+                        "type": "string",
+                        "description": "Slug du praticien",
+                        "example": "boubacar-coulibaly"
+                    },
+                    "startsAt": {
+                        "type": "string",
+                        "format": "date-time",
+                        "description": "Valeur `start` d'un cr\u00e9neau"
+                    },
+                    "reason": {
+                        "type": "string",
+                        "maxLength": 255,
+                        "description": "Motif (jamais transmis par SMS)"
+                    },
+                    "firstVisit": {
+                        "type": "boolean",
+                        "default": true
+                    },
+                    "relativeId": {
+                        "type": "integer",
+                        "description": "Proche concern\u00e9 (optionnel)"
+                    }
+                },
+                "required": [
+                    "practitioner",
+                    "startsAt"
+                ]
+            },
+            "AppointmentAction": {
+                "type": "object",
+                "properties": {
+                    "action": {
+                        "type": "string",
+                        "enum": [
+                            "cancel",
+                            "reschedule"
+                        ]
+                    },
+                    "startsAt": {
+                        "type": "string",
+                        "format": "date-time",
+                        "description": "Obligatoire pour reschedule"
+                    }
+                },
+                "required": [
+                    "action"
+                ]
+            },
+            "Appointment": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "startsAt": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "endsAt": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "localDate": {
+                        "type": "string",
+                        "format": "date"
+                    },
+                    "localTime": {
+                        "type": "string"
+                    },
+                    "status": {
+                        "type": "string",
+                        "enum": [
+                            "pending",
+                            "confirmed",
+                            "cancelled",
+                            "honored",
+                            "no_show"
+                        ]
+                    },
+                    "firstVisit": {
+                        "type": "boolean"
+                    },
+                    "reason": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "practitioner": {
+                        "$ref": "#/components/schemas/PractitionerSummary"
+                    },
+                    "facility": {
+                        "$ref": "#/components/schemas/Facility"
+                    },
+                    "relative": {
+                        "oneOf": [
+                            {
+                                "type": "null"
+                            },
+                            {
+                                "$ref": "#/components/schemas/Relative"
+                            }
+                        ]
+                    },
+                    "createdAt": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "patient": {
+                        "type": "object",
+                        "properties": {
+                            "firstName": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ]
+                            },
+                            "lastName": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ]
+                            },
+                            "phone": {
+                                "type": "string"
+                            }
+                        },
+                        "description": "Espace praticien uniquement"
+                    }
+                }
+            },
+            "MyAppointments": {
+                "type": "object",
+                "properties": {
+                    "upcoming": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/Appointment"
+                        }
+                    },
+                    "past": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/Appointment"
+                        }
+                    }
+                }
+            },
+            "ProAgenda": {
+                "type": "object",
+                "properties": {
+                    "practitioner": {
+                        "$ref": "#/components/schemas/PractitionerSummary"
+                    },
+                    "from": {
+                        "type": "string",
+                        "format": "date"
+                    },
+                    "to": {
+                        "type": "string",
+                        "format": "date"
+                    },
+                    "appointments": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/Appointment"
+                        }
+                    }
+                }
+            },
+            "ProStatusInput": {
+                "type": "object",
+                "properties": {
+                    "status": {
+                        "type": "string",
+                        "enum": [
+                            "confirmed",
+                            "cancelled",
+                            "honored",
+                            "no_show"
+                        ]
+                    }
+                },
+                "required": [
+                    "status"
+                ]
+            },
+            "AbsenceInput": {
+                "type": "object",
+                "properties": {
+                    "startsAt": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "endsAt": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "reason": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "startsAt",
+                    "endsAt"
+                ]
+            },
+            "ProStats": {
+                "type": "object",
+                "properties": {
+                    "period": {
+                        "type": "string"
+                    },
+                    "counts": {
+                        "type": "object",
+                        "properties": {
+                            "pending": {
+                                "type": "integer"
+                            },
+                            "confirmed": {
+                                "type": "integer"
+                            },
+                            "cancelled": {
+                                "type": "integer"
+                            },
+                            "honored": {
+                                "type": "integer"
+                            },
+                            "no_show": {
+                                "type": "integer"
+                            }
+                        }
+                    },
+                    "total": {
+                        "type": "integer"
+                    },
+                    "noShowRate": {
+                        "type": "number",
+                        "description": "En %"
+                    }
+                }
+            },
+            "AdminPractitioners": {
+                "type": "object",
+                "properties": {
+                    "status": {
+                        "type": "string"
+                    },
+                    "items": {
+                        "type": "array",
+                        "items": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/components/schemas/PractitionerDetail"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "verificationStatus": {
+                                            "type": "string"
+                                        },
+                                        "createdAt": {
+                                            "type": "string",
+                                            "format": "date-time"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            },
+            "VerificationInput": {
+                "type": "object",
+                "properties": {
+                    "decision": {
+                        "type": "string",
+                        "enum": [
+                            "verify",
+                            "reject"
+                        ]
+                    }
+                },
+                "required": [
+                    "decision"
+                ]
+            },
+            "VerificationResult": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "integer"
+                    },
+                    "verificationStatus": {
+                        "type": "string",
+                        "enum": [
+                            "pending",
+                            "verified",
+                            "rejected"
+                        ]
+                    }
+                }
+            }
+        },
+        "responses": {},
+        "parameters": {},
+        "examples": {},
+        "requestBodies": {},
+        "headers": {},
+        "securitySchemes": {
+            "bearerAuth": {
+                "type": "http",
+                "description": "Jeton obtenu via POST /api/auth/otp/verify. En-t\u00eate : Authorization: Bearer <token>",
+                "scheme": "bearer",
+                "bearerFormat": "opaque"
+            }
+        }
+    },
+    "security": [],
+    "tags": [
+        {
+            "name": "Authentification",
+            "description": "Connexion sans mot de passe par code SMS (OTP)."
+        },
+        {
+            "name": "Annuaire",
+            "description": "Recherche publique de praticiens, fiches et cr\u00e9neaux."
+        },
+        {
+            "name": "Patient",
+            "description": "Profil, proches, r\u00e9servation, annulation et report. Jeton requis."
+        },
+        {
+            "name": "Praticien",
+            "description": "Agenda, statut des rendez-vous, cong\u00e9s, statistiques. R\u00f4le ROLE_PRACTITIONER."
+        },
+        {
+            "name": "Administration",
+            "description": "Validation des praticiens et confirmation des paiements. R\u00f4le ROLE_COUNTRY_ADMIN (limit\u00e9 \u00e0 son pays) ou ROLE_SUPER_ADMIN."
+        },
+        {
+            "name": "Abonnement",
+            "description": "Abonnement de publication des praticiens : 6 000 FCFA / semestre, 10 000 FCFA / an, renouvelable. Un praticien n'est visible que s'il est v\u00e9rifi\u00e9 ET abonn\u00e9."
+        },
+        {
+            "name": "SubscriptionPlan",
+            "description": "Formules d'abonnement (API Platform, public)."
+        },
+        {
+            "name": "Country",
+            "description": "R\u00e9f\u00e9rentiel des pays (API Platform)."
+        },
+        {
+            "name": "Region",
+            "description": "R\u00e9f\u00e9rentiel des r\u00e9gions (API Platform)."
+        },
+        {
+            "name": "City",
+            "description": "R\u00e9f\u00e9rentiel des villes (API Platform)."
+        },
+        {
+            "name": "Specialty",
+            "description": "R\u00e9f\u00e9rentiel des sp\u00e9cialit\u00e9s (API Platform)."
+        },
+        {
+            "name": "Facility",
+            "description": "Structures de sant\u00e9 (API Platform)."
+        }
+    ],
+    "webhooks": {}
+}

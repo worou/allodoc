@@ -1,0 +1,17 @@
+framework:
+    rate_limiter:
+        # 3 codes par numéro ou par adresse email toutes les 10 minutes
+        otp_request_phone:
+            policy: sliding_window
+            limit: 3
+            interval: '10 minutes'
+        # 20 demandes de code par adresse IP et par heure
+        otp_request_ip:
+            policy: sliding_window
+            limit: 20
+            interval: '1 hour'
+        # 10 essais de vérification par numéro toutes les 15 minutes
+        otp_verify:
+            policy: sliding_window
+            limit: 10
+            interval: '15 minutes'

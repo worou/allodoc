@@ -1,0 +1,25 @@
+security:
+    providers:
+        app_users:
+            entity:
+                class: App\Entity\User
+                property: phone
+
+    role_hierarchy:
+        ROLE_PRACTITIONER: ROLE_PATIENT
+        ROLE_COUNTRY_ADMIN: ROLE_PATIENT
+        ROLE_SUPER_ADMIN: [ROLE_COUNTRY_ADMIN, ROLE_PRACTITIONER]
+
+    firewalls:
+        dev:
+            pattern: ^/(_profiler|_wdt|assets|build)/
+            security: false
+        main:
+            stateless: true
+            provider: app_users
+            # Jeton opaque "Authorization: Bearer ..." délivré après vérification du code SMS.
+            access_token:
+                token_handler: App\Security\ApiTokenHandler
+
+    access_control:
+        - { path: ^/api/(me|appointments|pro|admin), roles: ROLE_PATIENT }

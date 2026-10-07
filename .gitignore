@@ -1,0 +1,11 @@
+# Fichiers générés et dépendances (chaque sous-projet a aussi son propre .gitignore)
+node_modules/
+*.log
+.DS_Store
+Thumbs.db
+
+# Paquets Android générés (ne pas versionner les APK / AAB signés ni les clés)
+*.apk
+*.aab
+*.jks
+*.keystore
