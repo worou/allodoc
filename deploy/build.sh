@@ -4,9 +4,9 @@
 # Résultat dans deploy/out/ :
 #   allodoc-api/       -> à placer dans /home/<compte>/allodoc-api   (HORS de la racine web)
 #   www/               -> contenu de la racine web du sous-domaine (front React + .htaccess + api.php)
-#   database.sql       -> base de production : référentiels + super-administrateur (import phpMyAdmin)
+#   database.sql       -> base de production : référentiels + super-administrateur (install-db.php ou phpMyAdmin)
 #   database-demo.sql  -> variante avec les praticiens fictifs de démonstration
-#   allodoc-api.zip, www.zip -> mêmes dossiers compressés (pour le Gestionnaire de fichiers cPanel)
+#   allodoc-api.tar.gz, www.tar.gz -> mêmes dossiers compressés (Gestionnaire de fichiers cPanel : Extraire)
 #
 # Usage : PHP=/chemin/php COMPOSER_PHAR=/chemin/composer.phar ADMIN_EMAIL=vous@exemple.com bash deploy/build.sh
 set -euo pipefail
@@ -61,10 +61,10 @@ run app:install --admin-email="$ADMIN_EMAIL"
 "$MYSQLDUMP_BIN" -uroot "${DUMP_OPTS[@]}" "$BUILD_DB" > "$OUT/database-demo.sql"
 run doctrine:database:drop --force
 
-echo "== Archives"
+echo "== Archives (.tar.gz, décompressables par le Gestionnaire de fichiers cPanel)"
 cd "$OUT"
-tar -a -cf allodoc-api.zip allodoc-api 2>/dev/null || (cd "$OUT" && zip -qr allodoc-api.zip allodoc-api)
-(cd www && tar -a -cf ../www.zip . 2>/dev/null) || (cd www && zip -qr ../www.zip .)
+tar -czf allodoc-api.tar.gz allodoc-api
+(cd www && tar -czf ../www.tar.gz .)
 
 echo "== Terminé"
 ls -la "$OUT"

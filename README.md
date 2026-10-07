@@ -36,6 +36,40 @@ npm run dev
 
 La connexion à la base est définie dans `backend/.env.local` (`DATABASE_URL`, utilisateur `root` sans mot de passe sous XAMPP). L'URL de l'API côté front est dans `frontend/.env` (`VITE_API_URL`).
 
+## Mise en ligne (o2switch : allodoc.teranga.re)
+
+Production : **http://allodoc.teranga.re**. Hébergement mutualisé o2switch (cPanel), PHP 8.3 (LiteSpeed), MariaDB 11.4.
+
+| Emplacement sur le serveur | Contenu |
+|---|---|
+| `/home/rise9482/allodoc.teranga.re/` | Racine web : front React, `.htaccess`, `api.php` (pont vers l'API), `bundles/` (Swagger UI) |
+| `/home/rise9482/allodoc-api/` | API Symfony **hors racine web**, avec `.env.local` de production |
+| Base `rise9482_allodoc` | Référentiels + super-administrateur, sans données de démonstration |
+
+**Mettre à jour le site**
+1. `cp deploy/prod.env.example deploy/prod.env` et renseigner les valeurs de production. Ce fichier n'est pas versionné.
+2. Lancer :
+   ```bash
+   PHP=/c/Users/PC/tools/php83/php.exe COMPOSER_PHAR=/c/Users/PC/tools/php84/composer.phar \
+   MYSQL_BIN=/c/xampp/mysql/bin/mysql.exe MYSQLDUMP_BIN=/c/xampp/mysql/bin/mysqldump.exe \
+   ADMIN_EMAIL=vous@exemple.com bash deploy/build.sh
+   ```
+3. Dans cPanel, **Gestionnaire de fichiers** :
+   - envoyer `allodoc-api.tar.gz` dans `/home/rise9482` et `www.tar.gz` dans la racine web, puis **Extraire** chacun ;
+   - **sans écraser** `allodoc-api/.env.local`.
+4. Si une version modifie la base, appliquer la migration : SSH, ou bien script ponctuel sur le modèle de `deploy/server/install-db.php`.
+5. Vider `allodoc-api/var/cache/prod` pour que le nouveau code soit pris en compte.
+
+**Première installation de la base** : `deploy/server/install-db.php`. Le script importe `allodoc-api/var/install/database.sql`, uniquement dans une base vide. Il est protégé par une clé aléatoire et s'efface après usage.
+
+**Tâches planifiées** (cPanel, **Tâches Cron**, déjà configurées) :
+- `app:send-reminders` : toutes les 15 minutes ;
+- `app:subscription-reminders` : tous les jours à 7 h.
+
+**PHP 8.3.** Les dépendances sont verrouillées sur la plateforme PHP 8.3.35 (`config.platform` dans `composer.json`). Il ne faut pas passer le compte en PHP 8.4 via le `.htaccess` : cette variante d'o2switch n'a pas les extensions `intl`, `mbstring` ni `sodium`.
+
+**Protection o2switch (PowerBoost).** Les navigateurs automatisés (« HeadlessChrome ») reçoivent des erreurs 429. Les vrais navigateurs ne sont pas concernés. Pour des tests automatisés, utilisez un user-agent de navigateur standard.
+
 ## Swagger / OpenAPI
 
 - **Swagger UI** : http://127.0.0.1:8000/api/docs
