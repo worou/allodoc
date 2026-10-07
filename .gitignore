@@ -9,3 +9,7 @@ Thumbs.db
 *.aab
 *.jks
 *.keystore
+
+# Déploiement : secrets et paquets générés
+deploy/prod.env
+deploy/out/

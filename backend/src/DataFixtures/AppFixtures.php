@@ -15,6 +15,7 @@ use App\Entity\User;
 use Random\Engine\Mt19937;
 use Random\Randomizer;
 use App\Enum\FacilityType;
+use App\Reference\ReferenceLoader;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Persistence\ObjectManager;
 use Symfony\Component\String\Slugger\AsciiSlugger;
@@ -25,71 +26,6 @@ use Symfony\Component\String\Slugger\AsciiSlugger;
  */
 final class AppFixtures extends Fixture
 {
-    private const COUNTRIES = [
-        'ML' => ['Mali', 'Bamako', 'Africa/Bamako', '+223', ['fr', 'bm', 'ff', 'son', 'tmh', 'ar']],
-        'BF' => ['Burkina Faso', 'Ouagadougou', 'Africa/Ouagadougou', '+226', ['fr', 'mos', 'dyu', 'ff']],
-        'NE' => ['Niger', 'Niamey', 'Africa/Niamey', '+227', ['fr', 'ha', 'dje', 'ff', 'tmh', 'ar']],
-    ];
-
-    /** [nom, chef-lieu, ancien nom] */
-    private const REGIONS = [
-        'ML' => [
-            ['District de Bamako', 'Bamako', null], ['Kayes', 'Kayes', null], ['Koulikoro', 'Koulikoro', null],
-            ['Sikasso', 'Sikasso', null], ['Ségou', 'Ségou', null], ['Mopti', 'Mopti', null],
-            ['Tombouctou', 'Tombouctou', null], ['Gao', 'Gao', null], ['Kidal', 'Kidal', null],
-            ['Taoudénit', 'Taoudéni', null], ['Ménaka', 'Ménaka', null], ['Nioro', 'Nioro du Sahel', null],
-            ['Kita', 'Kita', null], ['Dioïla', 'Dioïla', null], ['Nara', 'Nara', null],
-            ['Bougouni', 'Bougouni', null], ['Koutiala', 'Koutiala', null], ['San', 'San', null],
-            ['Douentza', 'Douentza', null], ['Bandiagara', 'Bandiagara', null],
-        ],
-        'BF' => [
-            ['Kadiogo', 'Ouagadougou', 'Centre'], ['Guiriko', 'Bobo-Dioulasso', 'Hauts-Bassins'],
-            ['Bankui', 'Dédougou', 'Boucle du Mouhoun'], ['Djôrô', 'Gaoua', 'Sud-Ouest'],
-            ['Goulmou', "Fada N'Gourma", 'Est'], ['Kuilsé', 'Kaya', 'Centre-Nord'], ['Liptako', 'Dori', 'Sahel'],
-            ['Nando', 'Koudougou', 'Centre-Ouest'], ['Nakambé', 'Tenkodogo', 'Centre-Est'],
-            ['Nazinon', 'Manga', 'Centre-Sud'], ['Oubri', 'Ziniaré', 'Plateau-Central'],
-            ['Sirba', 'Bogandé', null], ['Soum', 'Djibo', null], ['Tannounyan', 'Banfora', 'Cascades'],
-            ['Tapoa', 'Diapaga', null], ['Sourou', 'Tougan', null], ['Yaadga', 'Ouahigouya', 'Nord'],
-        ],
-        'NE' => [
-            ['Niamey', 'Niamey', null], ['Agadez', 'Agadez', null], ['Diffa', 'Diffa', null], ['Dosso', 'Dosso', null],
-            ['Maradi', 'Maradi', null], ['Tahoua', 'Tahoua', null], ['Tillabéri', 'Tillabéri', null], ['Zinder', 'Zinder', null],
-        ],
-    ];
-
-    private const COORDINATES = [
-        'Bamako' => [12.6392, -8.0029], 'Kayes' => [14.4469, -11.4445], 'Sikasso' => [11.3176, -5.6665],
-        'Ségou' => [13.4317, -6.2157], 'Mopti' => [14.4843, -4.1830], 'Koulikoro' => [12.8627, -7.5598],
-        'Koutiala' => [12.3917, -5.4642], 'Kati' => [12.7441, -8.0726], 'Gao' => [16.2717, -0.0447],
-        'Ouagadougou' => [12.3714, -1.5197], 'Bobo-Dioulasso' => [11.1771, -4.2979], 'Koudougou' => [12.2526, -2.3627],
-        'Ouahigouya' => [13.5828, -2.4216], 'Banfora' => [10.6333, -4.7667], 'Kaya' => [13.0917, -1.0844],
-        "Fada N'Gourma" => [12.0617, 0.3583], 'Tenkodogo' => [11.7800, -0.3697],
-        'Niamey' => [13.5116, 2.1254], 'Maradi' => [13.5000, 7.1017], 'Zinder' => [13.8053, 8.9881],
-        'Tahoua' => [14.8888, 5.2692], 'Dosso' => [13.0490, 3.1937], 'Agadez' => [16.9742, 7.9865],
-    ];
-
-    /** [slug, nom, icône, traduction anglaise] */
-    private const SPECIALTIES = [
-        ['medecine-generale', 'Médecin généraliste', 'stethoscope', 'General practitioner'],
-        ['pediatrie', 'Pédiatre', 'child', 'Pediatrician'],
-        ['gynecologie', 'Gynécologue-obstétricien', 'female', 'Obstetrician-gynecologist'],
-        ['sage-femme', 'Sage-femme', 'baby', 'Midwife'],
-        ['cardiologie', 'Cardiologue', 'heart', 'Cardiologist'],
-        ['dermatologie', 'Dermatologue', 'skin', 'Dermatologist'],
-        ['ophtalmologie', 'Ophtalmologue', 'eye', 'Ophthalmologist'],
-        ['dentiste', 'Chirurgien-dentiste', 'tooth', 'Dentist'],
-        ['orl', 'ORL', 'ear', 'ENT specialist'],
-        ['psychiatrie', 'Psychiatre', 'brain', 'Psychiatrist'],
-        ['diabetologie', 'Diabétologue-endocrinologue', 'drop', 'Endocrinologist'],
-        ['neurologie', 'Neurologue', 'brain', 'Neurologist'],
-        ['traumatologie', 'Traumatologue-orthopédiste', 'bone', 'Orthopedic surgeon'],
-        ['urologie', 'Urologue', 'kidney', 'Urologist'],
-        ['pneumologie', 'Pneumologue', 'lungs', 'Pulmonologist'],
-        ['gastro-enterologie', 'Gastro-entérologue', 'stomach', 'Gastroenterologist'],
-        ['nephrologie', 'Néphrologue', 'kidney', 'Nephrologist'],
-        ['kinesitherapie', 'Kinésithérapeute', 'bone', 'Physiotherapist'],
-    ];
-
     private const NAMES = [
         'ML' => [
             'last' => ['Traoré', 'Coulibaly', 'Diarra', 'Keïta', 'Touré', 'Sangaré', 'Maïga', 'Diallo', 'Konaté', 'Sidibé', 'Dembélé', 'Cissé', 'Kanté', 'Samaké', 'Doumbia', 'Haïdara'],
@@ -152,52 +88,17 @@ final class AppFixtures extends Fixture
         mt_srand(2026);
         $slugger = new AsciiSlugger('fr');
 
-        $countries = $cities = [];
-        $position = 0;
-        foreach (self::COUNTRIES as $code => [$name, $capital, $tz, $prefix, $languages]) {
-            $country = (new Country($code, $name, $capital, $tz, $prefix))->setLanguages($languages)->setPosition($position++);
-            $manager->persist($country);
-            $countries[$code] = $country;
-
-            foreach (self::REGIONS[$code] as $i => [$regionName, $chefLieu, $former]) {
-                $region = (new Region($country, $regionName, strtolower($slugger->slug($regionName)), $chefLieu))
-                    ->setFormerName($former)
-                    ->setPosition($i);
-                $manager->persist($region);
-                [$lat, $lng] = self::COORDINATES[$chefLieu] ?? [null, null];
-                $cities[$chefLieu] = new City($region, $chefLieu, $lat, $lng);
-                $manager->persist($cities[$chefLieu]);
-                if ('Koulikoro' === $regionName) {
-                    $cities['Kati'] = new City($region, 'Kati', ...self::COORDINATES['Kati']);
-                    $manager->persist($cities['Kati']);
-                }
-            }
-        }
-
-        $specialties = [];
-        foreach (self::SPECIALTIES as [$slug, $name, $icon, $en]) {
-            $specialties[$slug] = new Specialty($slug, $name, $icon, ['en' => $en]);
-            $manager->persist($specialties[$slug]);
-        }
-
+        ['countries' => $countries, 'cities' => $cities, 'specialties' => $specialties, 'plans' => $plans] = ReferenceLoader::load($manager);
         $facilities = [];
         foreach (self::FACILITIES as [$code, $cityName, $name, $type, $address]) {
             $facility = new Facility($name, $type, $cities[$cityName], $address.', '.$cityName);
-            [$lat, $lng] = self::COORDINATES[$cityName];
+            [$lat, $lng] = ReferenceLoader::COORDINATES[$cityName];
             $facility->setCoordinates($lat + mt_rand(-200, 200) / 10000, $lng + mt_rand(-200, 200) / 10000)
-                ->setPhone(self::COUNTRIES[$code][3].' '.implode(' ', str_split((string) mt_rand(20000000, 99999999), 2)));
+                ->setPhone(ReferenceLoader::COUNTRIES[$code][3].' '.implode(' ', str_split((string) mt_rand(20000000, 99999999), 2)));
             $manager->persist($facility);
             $facilities[$code][] = $facility;
         }
 
-        // Formules d'abonnement de publication.
-        $plans = [
-            'semester' => new SubscriptionPlan('semester', 'Semestriel', 6, 6000, 0),
-            'annual' => new SubscriptionPlan('annual', 'Annuel', 12, 10000, 1),
-        ];
-        foreach ($plans as $plan) {
-            $manager->persist($plan);
-        }
         // Générateur séparé : ne décale pas les noms des praticiens générés par mt_rand.
         $rng = new Randomizer(new Mt19937(42));
 
@@ -208,7 +109,7 @@ final class AppFixtures extends Fixture
         foreach (self::NAMES as $code => $pool) {
             foreach ($facilities[$code] as $index => $facility) {
                 // Les capitales concentrent l'offre : 3 praticiens par structure de la capitale, 2 ailleurs.
-                $count = $facility->getCity()->getName() === self::COUNTRIES[$code][1] ? 3 : 2;
+                $count = $facility->getCity()->getName() === ReferenceLoader::COUNTRIES[$code][1] ? 3 : 2;
                 for ($n = 0; $n < $count; ++$n) {
                     $gender = mt_rand(0, 1) ? 'f' : 'm';
                     $first = $pool[$gender][mt_rand(0, \count($pool[$gender]) - 1)];
