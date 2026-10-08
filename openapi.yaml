@@ -2319,11 +2319,12 @@ components:
         method:
           type: string
           enum:
+            - mobile_money
             - orange_money
             - moov_money
             - wave
             - airtel_money
-            - cash
+          description: 'Moyen doté d\x27un numéro de réception pour le pays du praticien (actuellement : mobile_money)'
       required:
         - plan
         - method

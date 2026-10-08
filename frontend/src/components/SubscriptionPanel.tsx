@@ -115,7 +115,7 @@ export function SubscriptionPanel() {
   if (loading && !data) return <Loading />;
   if (error || !data) return <ErrorState message={error?.message ?? "Abonnement indisponible."} onRetry={reload} />;
 
-  const methods = data.methods.filter((m) => m.code === "cash" || data.paymentAccount[m.code]);
+  const methods = data.methods.filter((m) => data.paymentAccount[m.code]);
   const chosenMethod = method || methods[0]?.code || "";
   const expiringSoon = data.activeSubscription && data.daysLeft <= 14;
 

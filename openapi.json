@@ -3487,12 +3487,13 @@
                     "method": {
                         "type": "string",
                         "enum": [
+                            "mobile_money",
                             "orange_money",
                             "moov_money",
                             "wave",
-                            "airtel_money",
-                            "cash"
-                        ]
+                            "airtel_money"
+                        ],
+                        "description": "Moyen dot\u00e9 d\\x27un num\u00e9ro de r\u00e9ception pour le pays du praticien (actuellement : mobile_money)"
                     }
                 },
                 "required": [

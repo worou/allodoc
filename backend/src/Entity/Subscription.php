@@ -15,11 +15,11 @@ use Symfony\Component\Uid\Uuid;
 class Subscription
 {
     public const METHODS = [
+        'mobile_money' => 'Mobile money',
         'orange_money' => 'Orange Money',
         'moov_money' => 'Moov Money',
         'wave' => 'Wave',
         'airtel_money' => 'Airtel Money',
-        'cash' => 'Espèces (agence ou équipe terrain)',
     ];
 
     #[ORM\Id, ORM\Column(type: 'uuid')]

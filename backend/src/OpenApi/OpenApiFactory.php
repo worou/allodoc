@@ -353,7 +353,7 @@ final class OpenApiFactory implements OpenApiFactoryInterface
             'PhoneInput' => $obj(['phone' => $str + ['example' => '76 11 22 33'], 'country' => $countryCode, 'code' => $str + ['example' => '482913']], ['phone', 'code']),
             'SubscriptionOrder' => $obj([
                 'plan' => ['type' => 'string', 'enum' => ['semester', 'annual'], 'description' => 'semester = 6 000 FCFA / 6 mois, annual = 10 000 FCFA / 12 mois'],
-                'method' => ['type' => 'string', 'enum' => ['orange_money', 'moov_money', 'wave', 'airtel_money', 'cash']],
+                'method' => ['type' => 'string', 'enum' => ['mobile_money', 'orange_money', 'moov_money', 'wave', 'airtel_money'], 'description' => 'Moyen doté d\x27un numéro de réception pour le pays du praticien (actuellement : mobile_money)'],
             ], ['plan', 'method']),
             'PaymentConfirmation' => $obj(['transactionId' => $str + ['description' => 'Identifiant de transaction de l\'opérateur (facultatif)', 'example' => 'MP241007.1532.A12345']]),
             'Subscription' => $obj([

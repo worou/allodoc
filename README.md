@@ -176,14 +176,14 @@ Un praticien n'est **visible et réservable que s'il est vérifié par l'adminis
 | Annuel | 10 000 FCFA (soit 833 FCFA / mois, 2 000 FCFA d'économie) | 12 mois |
 
 **Déroulement**
-1. Dans son espace (onglet **Abonnement**), le praticien choisit une formule et un moyen de paiement : Orange Money, Moov Money, Wave, Airtel Money ou espèces.
+1. Dans son espace (onglet **Abonnement**), le praticien choisit une formule. Le paiement se fait **uniquement par mobile money, depuis l'application** : aucun paiement en espèces.
 2. Il reçoit une **référence de commande** (`AD-XXXXXX`) et le numéro marchand de son pays. Il envoie le montant en indiquant cette référence.
 3. L'administrateur de son pays vérifie le relevé du compte marchand, puis clique sur **Paiement reçu** (onglet **Paiements** de l'administration). Le profil est publié et le praticien reçoit un SMS.
 
 **Renouvellement.** Il est possible à tout moment. La nouvelle période s'ajoute à la fin de la période en cours, sans perte de jours ; après expiration, elle démarre au paiement. Un SMS de rappel part 7 jours puis 1 jour avant l'échéance. Une fois l'abonnement expiré, le profil disparaît de la recherche, mais les rendez-vous déjà pris sont conservés.
 
 **À configurer avant la mise en ligne**
-- Les **numéros marchands** sont fictifs : remplacez-les dans `backend/config/services.yaml` (`app.payment_accounts`).
+- **Numéro de réception** : +229 90 28 53 86, pour les trois pays. Il est configuré dans `backend/config/services.yaml` (`app.payment_accounts`). Pour proposer un opérateur précis, ajoutez sa clé (`orange_money`, `moov_money`, `wave`, `airtel_money`) avec son numéro ; seuls les moyens dotés d'un numéro sont proposés et acceptés.
 - Les **tarifs** sont en base (table `subscription_plan`) et peuvent changer sans redéploiement. Une commande garde le prix du jour où elle a été passée.
 
 **Démo et suite**

@@ -167,7 +167,7 @@ final class AppFixtures extends Fixture
                         $this->paidSubscription($manager, $p, $plans['semester'], new \DateTimeImmutable('-6 months +5 days'));
                     } elseif (!$mlPendingOrder && 'ML' === $code && $p->isVerified()) {
                         // Garantit une commande à confirmer dans le back-office de l'administrateur Mali.
-                        $manager->persist(new Subscription($p, $plans['annual'], 'orange_money'));
+                        $manager->persist(new Subscription($p, $plans['annual'], 'mobile_money'));
                         $mlPendingOrder = true;
                     } elseif ($p->isVerified()) {
                         $this->demoSubscription($manager, $p, $plans, $rng);
@@ -209,7 +209,7 @@ final class AppFixtures extends Fixture
         }
         if (2 === $roll) {
             // Nouveau praticien vérifié qui vient de commander : paiement à confirmer par l'administrateur.
-            $manager->persist(new Subscription($p, $plans[$rng->getInt(0, 1) ? 'annual' : 'semester'], ['orange_money', 'moov_money', 'wave'][$rng->getInt(0, 2)]));
+            $manager->persist(new Subscription($p, $plans[$rng->getInt(0, 1) ? 'annual' : 'semester'], 'mobile_money'));
 
             return;
         }
@@ -220,7 +220,7 @@ final class AppFixtures extends Fixture
 
     private function paidSubscription(ObjectManager $manager, Practitioner $p, SubscriptionPlan $plan, \DateTimeImmutable $start): void
     {
-        $subscription = new Subscription($p, $plan, 'orange_money');
+        $subscription = new Subscription($p, $plan, 'mobile_money');
         $subscription->markPaid($start, 'DEMO-'.strtoupper(bin2hex(random_bytes(3))), null);
         $p->setPublishedUntil($subscription->getEndsAt());
         $manager->persist($subscription);

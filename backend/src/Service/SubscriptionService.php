@@ -35,8 +35,9 @@ final class SubscriptionService
         if (!$plan->isActive()) {
             throw new BookingException('Cette formule n\'est plus proposée.', 422);
         }
-        if (!isset(Subscription::METHODS[$method])) {
-            throw new BookingException('Moyen de paiement inconnu.', 422);
+        // Paiement 100 % mobile money : seul un moyen doté d'un numéro de réception pour ce pays est accepté.
+        if (!isset(Subscription::METHODS[$method]) || empty($this->paymentAccount($practitioner)[$method])) {
+            throw new BookingException('Moyen de paiement non disponible.', 422);
         }
         // Une seule commande en attente à la fois : la nouvelle remplace l'ancienne.
         foreach ($this->pending($practitioner) as $old) {
