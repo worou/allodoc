@@ -1,5 +1,7 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { api, ApiError } from "./api";
+import { specialtyName } from "./format";
+import { translate, useI18n } from "./i18n";
 import type { CountryCode, Specialty } from "./types";
 import type { SearchRegion } from "../components/SearchBar";
 
@@ -22,7 +24,7 @@ export function useApi<T>(path: string | null, options: { auth?: boolean } = {})
       .then((data) => !cancelled && setState({ data, error: null, loading: false }))
       .catch((e: unknown) => {
         if (cancelled) return;
-        const error = e instanceof ApiError ? e : new ApiError("Connexion impossible. Vérifiez votre réseau.", 0);
+        const error = e instanceof ApiError ? e : new ApiError(translate("error.network"), 0);
         setState({ data: null, error, loading: false });
       });
     return () => {
@@ -73,7 +75,11 @@ function useCachedList<T>(key: string, path: string, map: (raw: never[]) => T[])
 }
 
 export function useSpecialties(): Specialty[] {
-  return useCachedList<Specialty>("allodoc.specialties.v1", "/api/specialties", (raw) => raw as unknown as Specialty[]);
+  const { lang } = useI18n();
+  const items = useCachedList<Specialty>("allodoc.specialties.v1", "/api/specialties", (raw) => raw as unknown as Specialty[]);
+  // Noms dans la langue choisie : la saisie semi-automatique cherche aussi dans cette langue.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  return useMemo(() => items.map((s) => ({ ...s, name: specialtyName(s) })), [items, lang]);
 }
 
 export function useRegions(): SearchRegion[] {
@@ -88,7 +94,8 @@ export function useRegions(): SearchRegion[] {
 
 /** Titre de l'onglet (référencement minimal côté SPA). */
 export function useTitle(title: string) {
+  const { t } = useI18n();
   useEffect(() => {
-    document.title = title ? `${title} · AlloDoc` : "AlloDoc : rendez-vous médical au Mali, au Burkina Faso et au Niger";
-  }, [title]);
+    document.title = title ? `${title} · AlloDoc` : t("meta.title");
+  }, [title, t]);
 }

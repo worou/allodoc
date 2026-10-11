@@ -1,4 +1,5 @@
 import { Link } from "react-router";
+import { useI18n } from "../lib/i18n";
 
 /** Marque AlloDoc : une croix de soin posée sur un soleil sahélien, entourée d'un motif tissé. */
 export function LogoMark({ size = 34 }: { size?: number }) {
@@ -14,8 +15,9 @@ export function LogoMark({ size = 34 }: { size?: number }) {
 }
 
 export function Logo() {
+  const { t } = useI18n();
   return (
-    <Link to="/" className="brand" aria-label="AlloDoc, accueil">
+    <Link to="/" className="brand" aria-label={t("header.homeLabel")}>
       <LogoMark />
       <span>
         Allo<b>Doc</b>

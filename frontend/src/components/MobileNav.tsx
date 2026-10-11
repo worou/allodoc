@@ -1,6 +1,7 @@
 import { Link, useLocation } from "react-router";
 import { hasRole, useAuth } from "./AuthProvider";
 import { Icon } from "./Icon";
+import { useI18n } from "../lib/i18n";
 
 interface Item {
   to: string;
@@ -16,32 +17,33 @@ interface Item {
  */
 export function MobileNav() {
   const { user } = useAuth();
+  const { t } = useI18n();
   const { pathname, search } = useLocation();
   const params = new URLSearchParams(search);
   const isPro = hasRole(user, "ROLE_PRACTITIONER");
 
   const items: Item[] = isPro
     ? [
-        { to: "/pro", icon: "calendar", label: "Agenda", active: (p, q) => p === "/pro" && q.get("onglet") !== "abonnement" },
-        { to: "/pro?onglet=abonnement", icon: "crown", label: "Abonnement", active: (p, q) => p === "/pro" && q.get("onglet") === "abonnement" },
-        { to: "/recherche", icon: "search", label: "Rechercher", active: (p) => p === "/recherche" || p.startsWith("/medecin") },
-        { to: "/compte?onglet=profil", icon: "user", label: "Compte", active: (p) => p === "/compte" },
+        { to: "/pro", icon: "calendar", label: t("nav.agenda"), active: (p, q) => p === "/pro" && q.get("onglet") !== "abonnement" },
+        { to: "/pro?onglet=abonnement", icon: "crown", label: t("nav.subscription"), active: (p, q) => p === "/pro" && q.get("onglet") === "abonnement" },
+        { to: "/recherche", icon: "search", label: t("nav.search"), active: (p) => p === "/recherche" || p.startsWith("/medecin") },
+        { to: "/compte?onglet=profil", icon: "user", label: t("nav.account"), active: (p) => p === "/compte" },
       ]
     : [
-        { to: "/", icon: "heart", label: "Accueil", active: (p) => p === "/" || /^\/(ml|bf|ne)$/.test(p) },
-        { to: "/recherche", icon: "search", label: "Rechercher", active: (p) => p === "/recherche" || p.startsWith("/medecin") || p.startsWith("/rdv") },
-        { to: "/compte", icon: "calendar", label: "Mes RDV", active: (p, q) => p === "/compte" && q.get("onglet") !== "profil" },
+        { to: "/", icon: "heart", label: t("nav.home"), active: (p) => p === "/" || /^\/(ml|bf|ne)$/.test(p) },
+        { to: "/recherche", icon: "search", label: t("nav.search"), active: (p) => p === "/recherche" || p.startsWith("/medecin") || p.startsWith("/rdv") },
+        { to: "/compte", icon: "calendar", label: t("nav.myAppointments"), active: (p, q) => p === "/compte" && q.get("onglet") !== "profil" },
         user
-          ? { to: "/compte?onglet=profil", icon: "user", label: "Profil", active: (p, q) => p === "/compte" && q.get("onglet") === "profil" }
-          : { to: "/connexion", icon: "user", label: "Connexion", active: (p) => p.startsWith("/connexion") },
+          ? { to: "/compte?onglet=profil", icon: "user", label: t("nav.profile"), active: (p, q) => p === "/compte" && q.get("onglet") === "profil" }
+          : { to: "/connexion", icon: "user", label: t("nav.signIn"), active: (p) => p.startsWith("/connexion") },
       ];
 
   return (
-    <nav className="mobile-nav" aria-label="Navigation principale">
+    <nav className="mobile-nav" aria-label={t("nav.main")}>
       {items.map((item) => {
         const active = item.active(pathname, params);
         return (
-          <Link key={item.label} to={item.to} className={active ? "active" : undefined} aria-current={active ? "page" : undefined}>
+          <Link key={item.to} to={item.to} className={active ? "active" : undefined} aria-current={active ? "page" : undefined}>
             <Icon name={item.icon} size={22} />
             <span>{item.label}</span>
           </Link>

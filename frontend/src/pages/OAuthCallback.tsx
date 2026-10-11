@@ -4,12 +4,14 @@ import { useAuth } from "../components/AuthProvider";
 import { Loading } from "../components/States";
 import { api, ApiError } from "../lib/api";
 import { useTitle } from "../lib/hooks";
+import { useI18n } from "../lib/i18n";
 import type { User } from "../lib/types";
 import { OAUTH_NONCE_KEY } from "../components/OtpLogin";
 
 /** Retour de Google / GitHub : échange le code à usage unique contre le jeton de session. */
 export default function OAuthCallback() {
-  useTitle("Connexion");
+  const { t } = useI18n();
+  useTitle(t("loginPage.title"));
   const [params] = useSearchParams();
   const navigate = useNavigate();
   const { login } = useAuth();
@@ -34,16 +36,17 @@ export default function OAuthCallback() {
         login(res.token, res.user);
         navigate(safeNext, { replace: true });
       })
-      .catch((err) => setError(err instanceof ApiError ? err.message : "Connexion impossible."));
+      .catch((err) => setError(err instanceof ApiError ? err.message : t("oauth.failed")));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [params, login, navigate]);
 
-  if (!error) return <Loading label="Connexion en cours…" />;
+  if (!error) return <Loading label={t("oauth.inProgress")} />;
   return (
     <div className="funnel" style={{ maxWidth: 480 }}>
       <div className="card form-card">
         <p className="alert alert-error">{error}</p>
         <Link to="/connexion" className="btn btn-primary">
-          Réessayer
+          {t("common.retry")}
         </Link>
       </div>
     </div>

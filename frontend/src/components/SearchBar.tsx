@@ -1,6 +1,7 @@
 import { useNavigate } from "react-router";
 import { useMemo, useRef, useState } from "react";
-import { COUNTRY_NAMES } from "../lib/api";
+import { COUNTRY_CODES, countryName } from "../lib/api";
+import { useI18n } from "../lib/i18n";
 import type { CountryCode } from "../lib/types";
 import { Icon } from "./Icon";
 import { useRememberedCountry } from "./Header";
@@ -33,6 +34,7 @@ function fold(s: string) {
 
 export function SearchBar({ specialties, regions, country, initial, compact }: Props) {
   const navigate = useNavigate();
+  const { t } = useI18n();
   const remembered = useRememberedCountry();
   const initialSpecialty = specialties.find((s) => s.slug === initial?.specialty);
   const [text, setText] = useState(initialSpecialty?.name ?? initial?.q ?? "");
@@ -53,7 +55,7 @@ export function SearchBar({ specialties, regions, country, initial, compact }: P
     return specialties.filter((s) => fold(s.name).includes(q) || fold(s.slug).includes(q)).slice(0, 8);
   }, [text, specialties]);
 
-  const countries = country ? [country] : (Object.keys(COUNTRY_NAMES) as CountryCode[]);
+  const countries = country ? [country] : COUNTRY_CODES;
 
   function submit(chosenSpecialty = specialty, label = text) {
     const params = new URLSearchParams();
@@ -84,13 +86,13 @@ export function SearchBar({ specialties, regions, country, initial, compact }: P
       <div className="field">
         <Icon name="search" />
         <label className="visually-hidden" htmlFor="search-what">
-          Spécialité, nom du praticien ou établissement
+          {t("search.whatLabel")}
         </label>
         <input
           id="search-what"
           type="search"
           autoComplete="off"
-          placeholder="Spécialité, médecin, clinique…"
+          placeholder={t("search.whatPlaceholder")}
           value={text}
           role="combobox"
           aria-expanded={open && matches.length > 0}
@@ -122,7 +124,7 @@ export function SearchBar({ specialties, regions, country, initial, compact }: P
         />
         {open && matches.length > 0 && (
           <ul className="suggestions" id="search-suggestions" role="listbox">
-            <li className="group">Spécialités</li>
+            <li className="group">{t("search.specialties")}</li>
             {matches.map((s, i) => (
               <li key={s.slug} role="option" aria-selected={i === active}>
                 <button
@@ -140,7 +142,7 @@ export function SearchBar({ specialties, regions, country, initial, compact }: P
               </li>
             ))}
             {text.trim() && !specialty && (
-              <li className="group">Ou chercher « {text.trim()} » par nom ou établissement</li>
+              <li className="group">{t("search.orByName", { text: text.trim() })}</li>
             )}
           </ul>
         )}
@@ -148,13 +150,13 @@ export function SearchBar({ specialties, regions, country, initial, compact }: P
       <div className="field">
         <Icon name="pin" />
         <label className="visually-hidden" htmlFor="search-where">
-          Où ?
+          {t("search.where")}
         </label>
         <select id="search-where" value={effectiveWhere} onChange={(e) => setWhere(e.target.value)}>
-          {!country && <option value="">Tous les pays de l&apos;AES</option>}
+          {!country && <option value="">{t("search.allCountries")}</option>}
           {countries.map((c) => (
-            <optgroup key={c} label={COUNTRY_NAMES[c]}>
-              <option value={c}>Tout le {COUNTRY_NAMES[c]}</option>
+            <optgroup key={c} label={countryName(c)}>
+              <option value={c}>{t("search.wholeCountry", { country: countryName(c) })}</option>
               {regions
                 .filter((r) => r.country === c)
                 .map((r) => (
@@ -168,7 +170,7 @@ export function SearchBar({ specialties, regions, country, initial, compact }: P
       </div>
       <button className="btn btn-primary" type="submit">
         <Icon name="search" size={18} />
-        Rechercher
+        {t("search.submit")}
       </button>
     </form>
   );

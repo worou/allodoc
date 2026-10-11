@@ -4,14 +4,17 @@ import { Icon } from "../components/Icon";
 import { RegionList } from "../components/RegionList";
 import { SearchBar } from "../components/SearchBar";
 import { ErrorState, Loading } from "../components/States";
-import { COUNTRY_NAMES, countryFromPath } from "../lib/api";
+import { countryFromPath, countryName } from "../lib/api";
+import { specialtyName } from "../lib/format";
 import { useApi, useSpecialties, useTitle } from "../lib/hooks";
+import { Trans, useI18n } from "../lib/i18n";
 import type { CountryOverview } from "../lib/types";
 import NotFound from "./NotFound";
 
 export default function Country() {
+  const { t, tn } = useI18n();
   const code = countryFromPath(useParams().country ?? "");
-  useTitle(code ? `Prendre rendez-vous chez un médecin au ${COUNTRY_NAMES[code]}` : "Page introuvable");
+  useTitle(code ? t("country.title", { country: countryName(code) }) : t("country.notFound"));
   const { data, error, loading, reload } = useApi<CountryOverview>(code ? `/api/countries/${code}/overview` : null, { auth: false });
   const specialties = useSpecialties();
 
@@ -30,16 +33,14 @@ export default function Country() {
             <Flag code={code} width={54} />
             {data && (
               <span className="tag" style={{ background: "rgb(255 255 255 / 12%)", color: "#fff" }}>
-                {data.practitionerCount} praticiens vérifiés · {covered} région{covered > 1 ? "s" : ""} couverte{covered > 1 ? "s" : ""}
+                {t("country.verified", { n: data.practitionerCount })} · {tn("country.regionsCovered", covered)}
               </span>
             )}
           </div>
           <h1>
-            Trouvez un praticien au <em>{COUNTRY_NAMES[code]}</em>
+            <Trans text={t("country.heroTitle")} values={{ country: <em>{countryName(code)}</em> }} />
           </h1>
-          <p className="lead">
-            De {data?.country.capital ?? "la capitale"} aux chefs-lieux de région : consultez les disponibilités et réservez en ligne.
-          </p>
+          <p className="lead">{t("country.heroLead", { capital: data?.country.capital ?? t("country.theCapital") })}</p>
           <SearchBar key={code} specialties={specialties} regions={searchRegions} country={code} />
         </div>
       </section>
@@ -54,8 +55,8 @@ export default function Country() {
             <div className="container">
               <div className="section-head">
                 <div>
-                  <h2 className="section-title">Spécialités disponibles</h2>
-                  <p className="section-sub">Au {COUNTRY_NAMES[code]}, toutes régions confondues.</p>
+                  <h2 className="section-title">{t("country.availableSpecialties")}</h2>
+                  <p className="section-sub">{t("country.allRegions", { country: countryName(code) })}</p>
                 </div>
               </div>
               <div className="specialty-grid">
@@ -65,10 +66,8 @@ export default function Country() {
                       <Icon name={s.icon} size={22} />
                     </span>
                     <span>
-                      {s.name}
-                      <small>
-                        {s.practitionerCount} praticien{s.practitionerCount > 1 ? "s" : ""}
-                      </small>
+                      {specialtyName(s)}
+                      <small>{tn("country.practitioners", s.practitionerCount)}</small>
                     </span>
                   </Link>
                 ))}
@@ -81,14 +80,14 @@ export default function Country() {
               <div className="section-head">
                 <div>
                   <h2 className="section-title">
-                    Praticiens par <span className="accent">région</span>
+                    <Trans text={t("country.byRegion")} values={{ accent: <span className="accent">{t("country.byRegionAccent")}</span> }} />
                   </h2>
-                  <p className="section-sub">Ouvrez une région pour voir ses praticiens et leur prochaine disponibilité.</p>
+                  <p className="section-sub">{t("country.byRegionSub")}</p>
                 </div>
               </div>
               <RegionList key={code} country={code} regions={regions} />
               <p className="muted small row" style={{ marginTop: 14 }}>
-                <Icon name="info" size={14} /> Découpage administratif en cours de validation avec le ministère de la santé. Les anciens noms de région sont indiqués entre parenthèses.
+                <Icon name="info" size={14} /> {t("country.adminNote")}
               </p>
             </div>
           </section>

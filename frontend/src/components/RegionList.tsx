@@ -1,7 +1,8 @@
 import { Link } from "react-router";
 import { useState } from "react";
 import { api } from "../lib/api";
-import { fcfa, hour, relativeDay, todayIn } from "../lib/format";
+import { fcfa, hour, relativeDay, specialtyList, todayIn } from "../lib/format";
+import { useI18n } from "../lib/i18n";
 import type { CountryCode, RegionOverview, SearchResult } from "../lib/types";
 import { Avatar } from "./Avatar";
 import { Icon } from "./Icon";
@@ -10,6 +11,7 @@ const PAGE_SIZE = 6;
 
 /** Une région repliable : les praticiens ne sont chargés qu'à l'ouverture, par pages de 6 (réseau faible). */
 function Region({ country, region }: { country: CountryCode; region: RegionOverview }) {
+  const { t, tn } = useI18n();
   const [result, setResult] = useState<SearchResult | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(false);
@@ -46,23 +48,17 @@ function Region({ country, region }: { country: CountryCode; region: RegionOverv
             {region.formerName && <span className="muted small" style={{ fontWeight: 400 }}> ({region.formerName})</span>}
           </h3>
           <span className="count">
-            Chef-lieu : {region.capital} ·{" "}
-            {region.practitionerCount > 0 ? (
-              <b>
-                {region.practitionerCount} praticien{region.practitionerCount > 1 ? "s" : ""}
-              </b>
-            ) : (
-              "bientôt disponible"
-            )}
+            {t("region.capital", { capital: region.capital })} ·{" "}
+            {region.practitionerCount > 0 ? <b>{tn("region.practitioners", region.practitionerCount)}</b> : t("region.comingSoon")}
           </span>
         </span>
         <Icon name="chevronDown" className="chev" />
       </summary>
       <div className="region-body">
         {region.practitionerCount === 0 && (
-          <p className="muted">Aucun praticien inscrit pour l&apos;instant dans cette région. Nos équipes terrain y travaillent.</p>
+          <p className="muted">{t("region.none")}</p>
         )}
-        {error && <p className="alert alert-error">Chargement impossible. Vérifiez votre connexion et rouvrez la région.</p>}
+        {error && <p className="alert alert-error">{t("region.loadError")}</p>}
         {loading && !result && (
           <div className="mini-grid">
             {[0, 1, 2].map((i) => (
@@ -81,17 +77,17 @@ function Region({ country, region }: { country: CountryCode; region: RegionOverv
                     <div style={{ minWidth: 0 }}>
                       <h4>{p.fullName}</h4>
                       <p className="small muted">
-                        {p.specialties.map((s) => s.name).join(", ")} · {p.facility?.city}
+                        {specialtyList(p.specialties)} · {p.facility?.city}
                       </p>
                       <p className="small muted">
                         {p.facility?.name} · {fcfa(p.fee)}
                       </p>
                       {p.nextAvailability ? (
                         <p className="next">
-                          <Icon name="calendar" size={13} className="inline" /> Disponible {relativeDay(p.nextAvailability.date, today)} à {hour(p.nextAvailability.time)}
+                          <Icon name="calendar" size={13} className="inline" /> {t("region.availableAt", { when: relativeDay(p.nextAvailability.date, today), time: hour(p.nextAvailability.time) })}
                         </p>
                       ) : (
-                        <p className="next none">Pas de créneau en ligne prochainement</p>
+                        <p className="next none">{t("region.noSlot")}</p>
                       )}
                     </div>
                   </Link>
@@ -100,11 +96,11 @@ function Region({ country, region }: { country: CountryCode; region: RegionOverv
             </div>
             <div className="row" style={{ justifyContent: "space-between", marginTop: 14 }}>
               <Link to={`/recherche?country=${country}&region=${region.slug}`} className="btn btn-sm btn-outline">
-                Voir tous les horaires de la région
+                {t("region.allSlots")}
               </Link>
               {result.page < result.pages && (
                 <button type="button" className="btn btn-sm btn-ghost" onClick={() => load(result.page + 1)} disabled={loading}>
-                  {loading ? "Chargement…" : `Afficher plus (${result.total - result.items.length})`}
+                  {loading ? t("common.loading") : t("region.showMore", { n: result.total - result.items.length })}
                 </button>
               )}
             </div>

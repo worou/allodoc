@@ -6,6 +6,7 @@ import { Footer } from "./components/Footer";
 import { Header } from "./components/Header";
 import { OfflineBanner } from "./components/OfflineBanner";
 import { ErrorState, Loading } from "./components/States";
+import { useI18n } from "./lib/i18n";
 import Home from "./pages/Home";
 
 // Pages chargées à la demande : le premier écran reste léger sur réseau 3G.
@@ -31,11 +32,14 @@ class ErrorBoundary extends Component<{ children: ReactNode }, { failed: boolean
   }
 
   render() {
-    if (this.state.failed) {
-      return <ErrorState message="Cette page n'a pas pu s'afficher. Vérifiez votre connexion." onRetry={() => window.location.reload()} />;
-    }
+    if (this.state.failed) return <PageError />;
     return this.props.children;
   }
+}
+
+function PageError() {
+  const { t } = useI18n();
+  return <ErrorState message={t("error.page")} onRetry={() => window.location.reload()} />;
 }
 
 function Layout() {

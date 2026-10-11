@@ -43,9 +43,13 @@ const PATHS: Record<string, string> = {
   edit: "M4 20h4L19 9l-4-4L4 16zM13 7l4 4",
 };
 
+/** Flèches retournées en arabe (lecture de droite à gauche). */
+const DIRECTIONAL = new Set(["chevronLeft", "chevronRight"]);
+
 export function Icon({ name, size = 20, className, strokeWidth = 2 }: { name: string; size?: number; className?: string; strokeWidth?: number }) {
+  const classes = [className, DIRECTIONAL.has(name) ? "flip-rtl" : null].filter(Boolean).join(" ") || undefined;
   return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" className={className} aria-hidden="true">
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" className={classes} aria-hidden="true">
       <path d={PATHS[name] ?? PATHS.stethoscope} />
     </svg>
   );

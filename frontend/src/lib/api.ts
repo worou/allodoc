@@ -1,3 +1,4 @@
+import { translate } from "./i18n";
 import type { CountryCode } from "./types";
 
 export const API_URL = import.meta.env.VITE_API_URL ?? "http://127.0.0.1:8000";
@@ -47,7 +48,7 @@ export async function api<T>(path: string, init: RequestInit & { auth?: boolean 
   const data = text ? JSON.parse(text) : null;
   if (!response.ok) {
     if (response.status === 401 && token) setToken(null);
-    throw new ApiError(data?.error ?? data?.detail ?? "Le service est momentanément indisponible.", response.status, data?.code);
+    throw new ApiError(data?.error ?? data?.detail ?? translate("error.service"), response.status, data?.code);
   }
   return data as T;
 }
@@ -60,4 +61,8 @@ export function countryFromPath(path: string): CountryCode | null {
   return code === "ML" || code === "BF" || code === "NE" ? code : null;
 }
 
-export const COUNTRY_NAMES: Record<CountryCode, string> = { ML: "Mali", BF: "Burkina Faso", NE: "Niger" };
+export const COUNTRY_CODES: CountryCode[] = ["ML", "BF", "NE"];
+
+export function countryName(code: CountryCode) {
+  return translate(`country.${code}`);
+}

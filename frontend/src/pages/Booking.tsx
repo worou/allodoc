@@ -6,8 +6,9 @@ import { Icon } from "../components/Icon";
 import { OtpLogin, PhoneVerify } from "../components/OtpLogin";
 import { ErrorState, Loading } from "../components/States";
 import { api, ApiError } from "../lib/api";
-import { dayMonth, dayShort, fcfa, hour, longDate } from "../lib/format";
+import { dayMonth, dayShort, fcfa, hour, longDate, relationLabel, specialtyList } from "../lib/format";
 import { useApi, useTitle } from "../lib/hooks";
+import { useI18n } from "../lib/i18n";
 import type { Appointment, PractitionerDetail, Relative, User } from "../lib/types";
 
 /** Date et heure locales d'un instant UTC, dans le fuseau de la structure. */
@@ -19,8 +20,11 @@ function localParts(iso: string, timezone: string) {
 
 type Step = "details" | "login" | "phone" | "identity";
 
+const RELATIONS = ["enfant", "parent", "conjoint", "autre"];
+
 export default function Booking() {
-  useTitle("Prendre rendez-vous");
+  const { t } = useI18n();
+  useTitle(t("common.bookAppointment"));
   const { slug = "" } = useParams();
   const [params] = useSearchParams();
   const start = params.get("start") ?? "";
@@ -39,7 +43,7 @@ export default function Booking() {
   const [failure, setFailure] = useState<string | null>(null);
 
   if (loading || !ready) return <Loading />;
-  if (error || !p || !start) return <ErrorState message={error?.message ?? "Créneau introuvable."} />;
+  if (error || !p || !start) return <ErrorState message={error?.message ?? t("booking.slotNotFound")} />;
 
   const tz = p.facility?.timezone ?? "Africa/Bamako";
   const when = localParts(start, tz);
@@ -80,7 +84,7 @@ export default function Booking() {
       }
       navigate(`/rdv/confirmation/${appointment.id}`, { replace: true, state: { appointment } });
     } catch (err) {
-      setFailure(err instanceof ApiError ? err.message : "La réservation a échoué. Vérifiez votre connexion.");
+      setFailure(err instanceof ApiError ? err.message : t("booking.failed"));
       setStep("details");
     } finally {
       setBusy(false);
@@ -97,7 +101,7 @@ export default function Booking() {
       setStep("details");
       await submit(updated);
     } catch (err) {
-      setFailure(err instanceof ApiError ? err.message : "Enregistrement impossible.");
+      setFailure(err instanceof ApiError ? err.message : t("error.save"));
     } finally {
       setBusy(false);
     }
@@ -107,7 +111,7 @@ export default function Booking() {
 
   return (
     <div className="funnel">
-      <ol className="funnel-steps" aria-label="Étapes">
+      <ol className="funnel-steps" aria-label={t("booking.steps")}>
         <li className={stepIndex > 0 ? "done" : "current"} />
         <li className={stepIndex === 1 ? "current" : ""} />
         <li />
@@ -123,23 +127,29 @@ export default function Booking() {
         <div style={{ minWidth: 0 }}>
           <p style={{ fontWeight: 800 }}>{p.fullName}</p>
           <p className="small muted">
-            {p.specialties.map((s) => s.name).join(", ")} · {fcfa(p.fee)}
+            {specialtyList(p.specialties)} · {fcfa(p.fee)}
           </p>
           <p className="small">
-            {longDate(when.date)} à {hour(when.time)} · {p.facility?.name}
+            {t("booking.when", { date: longDate(when.date), time: hour(when.time) })} · {p.facility?.name}
           </p>
         </div>
       </div>
 
       {failure && (
         <div className="alert alert-error" style={{ marginBottom: 16 }}>
-          <Icon name="info" /> <span>{failure} <Link to={`/medecin/${slug}${reschedule ? `?reschedule=${reschedule}` : ""}`} style={{ textDecoration: "underline" }}>Choisir un autre horaire</Link></span>
+          <Icon name="info" />{" "}
+          <span>
+            {failure}{" "}
+            <Link to={`/medecin/${slug}${reschedule ? `?reschedule=${reschedule}` : ""}`} style={{ textDecoration: "underline" }}>
+              {t("booking.otherSlot")}
+            </Link>
+          </span>
         </div>
       )}
 
       {step === "login" && (
         <OtpLogin
-          title="Connectez-vous pour confirmer"
+          title={t("booking.loginTitle")}
           next={`/rdv/${slug}?${params.toString()}`}
           onDone={(u) => {
             setStep("details");
@@ -150,9 +160,9 @@ export default function Booking() {
 
       {step === "phone" && (
         <div className="card form-card">
-          <h2>Votre numéro de téléphone</h2>
+          <h2>{t("booking.phoneTitle")}</h2>
           <PhoneVerify
-            intro="La confirmation et le rappel de votre rendez-vous sont envoyés par SMS. Vérifiez votre numéro une seule fois."
+            intro={t("booking.phoneIntro")}
             onDone={async (u) => {
               await refresh();
               setStep("details");
@@ -164,24 +174,22 @@ export default function Booking() {
 
       {step === "identity" && (
         <form className="card form-card" onSubmit={saveIdentity}>
-          <h2>Vos informations</h2>
-          <p className="muted">Elles seront transmises au praticien avec votre rendez-vous.</p>
+          <h2>{t("booking.identityTitle")}</h2>
+          <p className="muted">{t("booking.identityHint")}</p>
           <div>
-            <label className="field-label" htmlFor="firstName">Prénom</label>
+            <label className="field-label" htmlFor="firstName">{t("common.firstName")}</label>
             <input id="firstName" className="input" value={identity.firstName} onChange={(e) => setIdentity({ ...identity, firstName: e.target.value })} required autoComplete="given-name" />
           </div>
           <div>
-            <label className="field-label" htmlFor="lastName">Nom</label>
+            <label className="field-label" htmlFor="lastName">{t("common.lastName")}</label>
             <input id="lastName" className="input" value={identity.lastName} onChange={(e) => setIdentity({ ...identity, lastName: e.target.value })} required autoComplete="family-name" />
           </div>
           <label className="choice">
             <input type="checkbox" checked={identity.consent} onChange={(e) => setIdentity({ ...identity, consent: e.target.checked })} required />
-            <span className="small">
-              J&apos;accepte que mes données soient traitées pour gérer mes rendez-vous, conformément aux lois de protection des données personnelles. Je peux demander leur suppression à tout moment.
-            </span>
+            <span className="small">{t("booking.consent")}</span>
           </label>
           <button className="btn btn-primary btn-block" disabled={busy || !identity.consent}>
-            {busy ? "Confirmation…" : "Confirmer le rendez-vous"}
+            {busy ? t("booking.confirming") : t("booking.confirm")}
           </button>
         </form>
       )}
@@ -196,17 +204,17 @@ export default function Booking() {
         >
           {reschedule ? (
             <>
-              <h2>Déplacer le rendez-vous</h2>
-              <p className="muted">Votre rendez-vous actuel sera annulé et remplacé par ce nouveau créneau.</p>
+              <h2>{t("booking.rescheduleTitle")}</h2>
+              <p className="muted">{t("booking.rescheduleHint")}</p>
             </>
           ) : (
             <>
-              <h2>Pour qui est ce rendez-vous ?</h2>
+              <h2>{t("booking.forWhom")}</h2>
               <div className="choice-list">
                 <label className="choice">
                   <input type="radio" name="who" checked={forWhom === "me"} onChange={() => setForWhom("me")} />
                   <span>
-                    <b>Pour moi</b>
+                    <b>{t("booking.forMe")}</b>
                     {user?.firstName && <span className="muted"> · {user.firstName} {user.lastName}</span>}
                   </span>
                 </label>
@@ -217,61 +225,62 @@ export default function Booking() {
                       <b>
                         {r.firstName} {r.lastName}
                       </b>
-                      <span className="muted"> · {r.relation}</span>
+                      <span className="muted"> · {relationLabel(r.relation)}</span>
                     </span>
                   </label>
                 ))}
                 <label className="choice">
                   <input type="radio" name="who" checked={forWhom === "new"} onChange={() => setForWhom("new")} />
                   <span>
-                    <b>Pour un proche</b> <span className="muted">(enfant, parent, conjoint…)</span>
+                    <b>{t("booking.forRelative")}</b> <span className="muted">{t("booking.forRelativeHint")}</span>
                   </span>
                 </label>
               </div>
               {forWhom === "new" && (
                 <div className="stack">
                   <div className="row" style={{ alignItems: "stretch" }}>
-                    <input className="input" style={{ flex: 1, minWidth: 140 }} placeholder="Prénom" value={newRelative.firstName} onChange={(e) => setNewRelative({ ...newRelative, firstName: e.target.value })} required />
-                    <input className="input" style={{ flex: 1, minWidth: 140 }} placeholder="Nom" value={newRelative.lastName} onChange={(e) => setNewRelative({ ...newRelative, lastName: e.target.value })} required />
+                    <input className="input" style={{ flex: 1, minWidth: 140 }} placeholder={t("common.firstName")} value={newRelative.firstName} onChange={(e) => setNewRelative({ ...newRelative, firstName: e.target.value })} required />
+                    <input className="input" style={{ flex: 1, minWidth: 140 }} placeholder={t("common.lastName")} value={newRelative.lastName} onChange={(e) => setNewRelative({ ...newRelative, lastName: e.target.value })} required />
                   </div>
-                  <select className="select" value={newRelative.relation} onChange={(e) => setNewRelative({ ...newRelative, relation: e.target.value })} aria-label="Lien de parenté">
-                    <option value="enfant">Enfant</option>
-                    <option value="parent">Parent</option>
-                    <option value="conjoint">Conjoint(e)</option>
-                    <option value="autre">Autre</option>
+                  <select className="select" value={newRelative.relation} onChange={(e) => setNewRelative({ ...newRelative, relation: e.target.value })} aria-label={t("booking.relationLabel")}>
+                    {RELATIONS.map((r) => (
+                      <option key={r} value={r}>
+                        {relationLabel(r)}
+                      </option>
+                    ))}
                   </select>
                 </div>
               )}
 
               <div>
-                <span className="field-label">Avez-vous déjà consulté ce praticien ?</span>
+                <span className="field-label">{t("booking.firstVisitQuestion")}</span>
                 <div className="row">
                   <label className="choice" style={{ flex: 1 }}>
-                    <input type="radio" name="first" checked={firstVisit} onChange={() => setFirstVisit(true)} /> Non, c&apos;est la première fois
+                    <input type="radio" name="first" checked={firstVisit} onChange={() => setFirstVisit(true)} /> {t("booking.firstVisitNo")}
                   </label>
                   <label className="choice" style={{ flex: 1 }}>
-                    <input type="radio" name="first" checked={!firstVisit} onChange={() => setFirstVisit(false)} /> Oui
+                    <input type="radio" name="first" checked={!firstVisit} onChange={() => setFirstVisit(false)} /> {t("booking.firstVisitYes")}
                   </label>
                 </div>
               </div>
 
               <div>
                 <label className="field-label" htmlFor="reason">
-                  Motif de consultation <span className="muted small">(facultatif)</span>
+                  {t("booking.reason")} <span className="muted small">{t("common.optional")}</span>
                 </label>
-                <textarea id="reason" className="textarea" maxLength={255} value={reason} onChange={(e) => setReason(e.target.value)} placeholder="Ex. : fièvre depuis 3 jours, renouvellement d'ordonnance…" />
+                <textarea id="reason" className="textarea" maxLength={255} value={reason} onChange={(e) => setReason(e.target.value)} placeholder={t("booking.reasonPlaceholder")} />
                 <p className="small muted row" style={{ marginTop: 6 }}>
-                  <Icon name="shield" size={14} /> Visible uniquement par le praticien, jamais envoyé par SMS.
+                  <Icon name="shield" size={14} /> {t("booking.reasonPrivate")}
                 </p>
               </div>
             </>
           )}
 
           <button className="btn btn-primary btn-block" disabled={busy}>
-            {busy ? "Réservation…" : user ? "Confirmer le rendez-vous" : "Continuer"}
+            {busy ? t("booking.booking") : user ? t("booking.confirm") : t("booking.continue")}
           </button>
           <p className="small muted" style={{ textAlign: "center" }}>
-            Paiement sur place. Annulation gratuite depuis « Mes rendez-vous ».
+            {t("booking.footer")}
           </p>
         </form>
       )}

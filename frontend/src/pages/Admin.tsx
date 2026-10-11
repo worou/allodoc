@@ -4,22 +4,24 @@ import { Avatar } from "../components/Avatar";
 import { Flag } from "../components/Flag";
 import { Icon } from "../components/Icon";
 import { ErrorState, Loading, LoginRequired } from "../components/States";
-import { api, ApiError, COUNTRY_NAMES } from "../lib/api";
-import { fcfa, shortDate } from "../lib/format";
+import { api, ApiError, countryName } from "../lib/api";
+import { fcfa, planName, shortDate, specialtyList } from "../lib/format";
 import { useApi, useTitle } from "../lib/hooks";
+import { useI18n, type MessageKey } from "../lib/i18n";
 import type { PractitionerDetail, Subscription } from "../lib/types";
 
 type Item = PractitionerDetail & { verificationStatus: string; createdAt: string; publishedUntil: string | null; activeSubscription: boolean };
 type Status = "pending" | "verified" | "rejected";
 
-const TABS: [Status, string][] = [
-  ["pending", "À vérifier"],
-  ["verified", "Vérifiés"],
-  ["rejected", "Rejetés"],
+const TABS: [Status, MessageKey][] = [
+  ["pending", "admin.tabPending"],
+  ["verified", "admin.tabVerified"],
+  ["rejected", "admin.tabRejected"],
 ];
 
 /** Paiements d'abonnement à confirmer (mobile money reçu sur le compte marchand du pays). */
 function Payments() {
+  const { t, tn } = useI18n();
   const [status, setStatus] = useState<"pending" | "paid">("pending");
   const { data, error, loading, reload } = useApi<{ total: number; items: Subscription[] }>(`/api/admin/subscriptions?status=${status}`);
   const [transactions, setTransactions] = useState<Record<string, string>>({});
@@ -28,23 +30,26 @@ function Payments() {
   async function act(s: Subscription, action: "confirm" | "reject") {
     try {
       await api(`/api/admin/subscriptions/${s.id}/${action}`, { method: "POST", body: JSON.stringify({ transactionId: transactions[s.id] ?? "" }) });
-      setMessage({ ok: true, text: action === "confirm" ? `${s.reference} confirmé : ${s.practitioner?.fullName} est publié.` : `${s.reference} refusé.` });
+      setMessage({
+        ok: true,
+        text: action === "confirm" ? t("admin.paymentConfirmed", { reference: s.reference, name: s.practitioner?.fullName ?? "" }) : t("admin.paymentRejected", { reference: s.reference }),
+      });
       reload();
     } catch (err) {
-      setMessage({ ok: false, text: err instanceof ApiError ? err.message : "Action impossible." });
+      setMessage({ ok: false, text: err instanceof ApiError ? err.message : t("error.action") });
     }
   }
 
   return (
     <>
       <div className="row" style={{ marginBottom: 16 }}>
-        <button type="button" className={`filter-chip${status === "pending" ? " active" : ""}`} onClick={() => setStatus("pending")}>À confirmer</button>
-        <button type="button" className={`filter-chip${status === "paid" ? " active" : ""}`} onClick={() => setStatus("paid")}>Encaissés</button>
-        {data && <span className="muted small">{data.items.length} commande{data.items.length > 1 ? "s" : ""} · {fcfa(data.total)}</span>}
+        <button type="button" className={`filter-chip${status === "pending" ? " active" : ""}`} onClick={() => setStatus("pending")}>{t("admin.toConfirm")}</button>
+        <button type="button" className={`filter-chip${status === "paid" ? " active" : ""}`} onClick={() => setStatus("paid")}>{t("admin.collected")}</button>
+        {data && <span className="muted small">{tn("admin.orders", data.items.length)} · {fcfa(data.total)}</span>}
       </div>
       {status === "pending" && (
         <p className="alert alert-info" style={{ marginBottom: 16 }}>
-          <Icon name="money" /> Vérifiez sur le relevé du compte marchand qu&apos;un transfert du bon montant porte la référence de la commande, puis confirmez.
+          <Icon name="money" /> {t("admin.checkStatement")}
         </p>
       )}
       {message && <p className={`alert ${message.ok ? "alert-ok" : "alert-error"}`} style={{ marginBottom: 16 }}>{message.text}</p>}
@@ -53,7 +58,7 @@ function Payments() {
       {data && data.items.length === 0 && (
         <div className="card empty">
           <Icon name="check" size={40} />
-          <p style={{ fontWeight: 700 }}>Aucune commande dans cette liste.</p>
+          <p style={{ fontWeight: 700 }}>{t("admin.noOrders")}</p>
         </div>
       )}
       <div className="stack">
@@ -64,12 +69,12 @@ function Payments() {
                 <span className="ref-code">{s.reference}</span>
                 <p style={{ fontWeight: 800, fontSize: 17, marginTop: 6 }}>{s.practitioner?.fullName}</p>
                 <p className="small muted">
-                  {s.practitioner?.city} · {s.practitioner?.phone ?? "pas de téléphone"} · commandé le {shortDate(s.createdAt)}
+                  {s.practitioner?.city} · <span dir="ltr">{s.practitioner?.phone ?? t("admin.noPhone")}</span> · {t("admin.orderedOn", { date: shortDate(s.createdAt) })}
                 </p>
               </div>
-              <div style={{ textAlign: "right" }}>
+              <div style={{ textAlign: "end" }}>
                 <p className="plan-price" style={{ fontSize: 24 }}>{fcfa(s.amount)}</p>
-                <p className="small muted">{s.plan.name} · {s.paymentMethodLabel}</p>
+                <p className="small muted">{planName(s.plan)} · {s.paymentMethodLabel}</p>
               </div>
             </div>
             {s.status === "pending" ? (
@@ -77,20 +82,22 @@ function Payments() {
                 <input
                   className="input"
                   style={{ flex: 1, minWidth: 200, minHeight: 40 }}
-                  placeholder="N° de transaction de l'opérateur (facultatif)"
+                  placeholder={t("admin.transactionPlaceholder")}
                   value={transactions[s.id] ?? ""}
                   onChange={(e) => setTransactions({ ...transactions, [s.id]: e.target.value })}
                 />
                 <button type="button" className="btn btn-sm btn-indigo" onClick={() => act(s, "confirm")}>
-                  <Icon name="check" size={16} /> Paiement reçu
+                  <Icon name="check" size={16} /> {t("admin.paymentReceived")}
                 </button>
-                <button type="button" className="btn btn-sm btn-danger" onClick={() => window.confirm("Refuser cette commande ?") && act(s, "reject")}>
-                  Refuser
+                <button type="button" className="btn btn-sm btn-danger" onClick={() => window.confirm(t("admin.rejectConfirm")) && act(s, "reject")}>
+                  {t("admin.reject")}
                 </button>
               </div>
             ) : (
               <p className="small muted">
-                Payé le {s.paidAt ? shortDate(s.paidAt) : "–"}{s.transactionId ? ` · transaction ${s.transactionId}` : ""} · période {s.startsAt ? shortDate(s.startsAt) : ""} → {s.endsAt ? shortDate(s.endsAt) : ""}
+                {t("admin.paidOn", { date: s.paidAt ? shortDate(s.paidAt) : "–" })}
+                {s.transactionId ? ` · ${t("admin.transaction", { id: s.transactionId })}` : ""} ·{" "}
+                {t("admin.period", { from: s.startsAt ? shortDate(s.startsAt) : "", to: s.endsAt ? shortDate(s.endsAt) : "" })}
               </p>
             )}
           </article>
@@ -101,7 +108,8 @@ function Payments() {
 }
 
 export default function Admin() {
-  useTitle("Administration");
+  const { t } = useI18n();
+  useTitle(t("admin.title"));
   const { user, ready } = useAuth();
   const isAdmin = hasRole(user, "ROLE_COUNTRY_ADMIN");
   const [status, setStatus] = useState<Status | "payments">("pending");
@@ -110,15 +118,15 @@ export default function Admin() {
 
   if (!ready) return <Loading />;
   if (!user) return <LoginRequired next="/admin" />;
-  if (!isAdmin) return <ErrorState message="Accès réservé aux administrateurs." />;
+  if (!isAdmin) return <ErrorState message={t("admin.restricted")} />;
 
   async function decide(p: Item, decision: "verify" | "reject") {
     try {
       await api(`/api/admin/practitioners/${p.id}/verification`, { method: "POST", body: JSON.stringify({ decision }) });
-      setMessage(`${p.fullName} : ${decision === "verify" ? "inscription validée (publié dès que son abonnement est actif)" : "inscription rejetée"}.`);
+      setMessage(decision === "verify" ? t("admin.validated", { name: p.fullName }) : t("admin.rejected", { name: p.fullName }));
       reload();
     } catch (err) {
-      setMessage(err instanceof ApiError ? err.message : "Action impossible.");
+      setMessage(err instanceof ApiError ? err.message : t("error.action"));
     }
   }
 
@@ -129,21 +137,21 @@ export default function Admin() {
           <p className="muted small row">
             {user.adminCountry ? (
               <>
-                <Flag code={user.adminCountry} width={20} /> Administration {COUNTRY_NAMES[user.adminCountry]}
+                <Flag code={user.adminCountry} width={20} /> {t("admin.countryAdmin", { country: countryName(user.adminCountry) })}
               </>
             ) : (
-              "Super-administration · tous les pays"
+              t("admin.superAdmin")
             )}
           </p>
-          <h1>{status === "payments" ? "Paiements des abonnements" : "Validation des praticiens"}</h1>
+          <h1>{status === "payments" ? t("admin.paymentsTitle") : t("admin.validationTitle")}</h1>
           <div className="tabs" role="tablist">
             {TABS.map(([key, label]) => (
               <button key={key} role="tab" aria-selected={status === key} onClick={() => setStatus(key)}>
-                {label}
+                {t(label)}
               </button>
             ))}
             <button role="tab" aria-selected={status === "payments"} onClick={() => setStatus("payments")}>
-              Paiements
+              {t("admin.payments")}
             </button>
           </div>
         </div>
@@ -151,7 +159,7 @@ export default function Admin() {
       <div className="container" style={{ padding: "24px 16px 40px", maxWidth: 960 }}>
         {status === "payments" ? <Payments /> : <>
         <p className="alert alert-info" style={{ marginBottom: 16 }}>
-          <Icon name="shield" /> Avant de valider, contrôlez le numéro d&apos;inscription auprès de l&apos;ordre professionnel du pays.
+          <Icon name="shield" /> {t("admin.checkOrder")}
         </p>
         {message && <p className="alert alert-ok" style={{ marginBottom: 16 }}>{message}</p>}
         {loading && !data && <Loading />}
@@ -159,7 +167,7 @@ export default function Admin() {
         {data && data.items.length === 0 && (
           <div className="card empty">
             <Icon name="check" size={40} />
-            <p style={{ fontWeight: 700 }}>Aucun dossier dans cette liste.</p>
+            <p style={{ fontWeight: 700 }}>{t("admin.noFiles")}</p>
           </div>
         )}
         <div className="stack">
@@ -170,13 +178,13 @@ export default function Admin() {
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <b style={{ fontSize: 18 }}>{p.fullName}</b>
                   <p className="small muted">
-                    {p.specialties.map((s) => s.name).join(", ")} · {p.facility?.name}, {p.facility?.city} ({p.facility?.region.name})
+                    {specialtyList(p.specialties)} · {p.facility?.name}, {p.facility?.city} ({p.facility?.region.name})
                   </p>
                   <p className="small">
-                    N° d&apos;ordre : <b>{p.orderNumber}</b> · Tarif {fcfa(p.fee)} · Inscrit le {new Date(p.createdAt).toLocaleDateString("fr-FR")} ·{" "}
-                    {p.activeSubscription ? <span className="tag tag-green">Abonné jusqu&apos;au {shortDate(p.publishedUntil!)}</span> : <span className="tag tag-danger">Sans abonnement actif</span>}
+                    {t("admin.orderNumber")} <b>{p.orderNumber}</b> · {t("admin.fee", { fee: fcfa(p.fee) })} · {t("admin.registeredOn", { date: shortDate(p.createdAt) })} ·{" "}
+                    {p.activeSubscription ? <span className="tag tag-green">{t("admin.subscribedUntil", { date: shortDate(p.publishedUntil!) })}</span> : <span className="tag tag-danger">{t("admin.noSubscription")}</span>}
                   </p>
-                  <ul className="small muted" style={{ margin: "6px 0 0", paddingLeft: 18 }}>
+                  <ul className="small muted" style={{ margin: "6px 0 0", paddingInlineStart: 18 }}>
                     {p.degrees.map((d) => (
                       <li key={d}>{d}</li>
                     ))}
@@ -186,12 +194,12 @@ export default function Admin() {
               <div className="row">
                 {status !== "verified" && (
                   <button type="button" className="btn btn-sm btn-indigo" onClick={() => decide(p, "verify")}>
-                    <Icon name="check" size={16} /> Valider et publier
+                    <Icon name="check" size={16} /> {t("admin.validate")}
                   </button>
                 )}
                 {status !== "rejected" && (
                   <button type="button" className="btn btn-sm btn-danger" onClick={() => decide(p, "reject")}>
-                    <Icon name="x" size={16} /> Rejeter
+                    <Icon name="x" size={16} /> {t("admin.rejectFile")}
                   </button>
                 )}
               </div>

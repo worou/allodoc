@@ -5,8 +5,9 @@ import { Icon } from "../components/Icon";
 import { ErrorState, Loading } from "../components/States";
 import { PlanCards, SubscriptionPanel } from "../components/SubscriptionPanel";
 import { api, ApiError } from "../lib/api";
-import { dayMonth, longDate, STATUS_LABELS } from "../lib/format";
+import { dayMonth, longDate, statusLabel } from "../lib/format";
 import { useApi, useTitle } from "../lib/hooks";
+import { Trans, useI18n } from "../lib/i18n";
 import type { Appointment, AppointmentStatus, PractitionerSummary, SubscriptionPlan, SubscriptionStatusResponse } from "../lib/types";
 
 interface Agenda {
@@ -29,18 +30,19 @@ function shiftDate(date: string, days: number) {
 
 /** Présentation pour les soignants non connectés. */
 function ProLanding() {
+  const { t } = useI18n();
   const plans = useApi<SubscriptionPlan[]>("/api/subscription-plans", { auth: false });
   return (
     <>
       <section className="hero">
         <div className="container">
           <h1>
-            L&apos;agenda en ligne des <em>soignants du Sahel</em>
+            <Trans text={t("pro.landingTitle")} values={{ em: <em>{t("pro.landingTitleEm")}</em> }} />
           </h1>
-          <p className="lead">Vos patients réservent 24h/24, reçoivent un rappel SMS la veille, et vous suivez vos consultations depuis votre téléphone.</p>
+          <p className="lead">{t("pro.landingLead")}</p>
           <div className="row" style={{ marginTop: 24 }}>
             <Link to="/connexion?next=/pro" className="btn btn-primary">
-              Accéder à mon agenda
+              {t("pro.accessAgenda")}
             </Link>
           </div>
         </div>
@@ -48,16 +50,16 @@ function ProLanding() {
       <section className="section">
         <div className="container steps">
           <div className="card step">
-            <h3>Inscription vérifiée</h3>
-            <p>Votre numéro d&apos;ordre est contrôlé par l&apos;administrateur de votre pays avant publication.</p>
+            <h3>{t("pro.step1Title")}</h3>
+            <p>{t("pro.step1")}</p>
           </div>
           <div className="card step">
-            <h3>Horaires et congés</h3>
-            <p>Horaires récurrents, durée de consultation et congés : les créneaux se mettent à jour seuls.</p>
+            <h3>{t("pro.step2Title")}</h3>
+            <p>{t("pro.step2")}</p>
           </div>
           <div className="card step">
-            <h3>Moins d&apos;absences</h3>
-            <p>Rappels SMS automatiques et annulation en un clic libèrent les créneaux pour d&apos;autres patients.</p>
+            <h3>{t("pro.step3Title")}</h3>
+            <p>{t("pro.step3")}</p>
           </div>
         </div>
       </section>
@@ -66,9 +68,9 @@ function ProLanding() {
           <div className="section-head">
             <div>
               <h2 className="section-title">
-                Des tarifs <span className="accent">simples</span>
+                <Trans text={t("pro.pricing")} values={{ accent: <span className="accent">{t("pro.pricingAccent")}</span> }} />
               </h2>
-              <p className="section-sub">Un abonnement pour être publié et recevoir des réservations. Paiement par mobile money, renouvelable à tout moment.</p>
+              <p className="section-sub">{t("pro.pricingSub")}</p>
             </div>
           </div>
           {plans.data ? <PlanCards plans={plans.data} /> : <div className="skeleton" style={{ height: 220 }} />}
@@ -79,7 +81,8 @@ function ProLanding() {
 }
 
 export default function Pro() {
-  useTitle("Espace praticien");
+  const { t, tn } = useI18n();
+  useTitle(t("pro.title"));
   const { user, ready } = useAuth();
   const isPro = hasRole(user, "ROLE_PRACTITIONER");
   const [from, setFrom] = useState<string | null>(null);
@@ -100,7 +103,7 @@ export default function Pro() {
       agenda.reload();
       stats.reload();
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Action impossible.");
+      setError(err instanceof ApiError ? err.message : t("error.action"));
     }
   }
 
@@ -112,36 +115,36 @@ export default function Pro() {
     <>
       <div className="page-head" style={{ paddingBottom: 20 }}>
         <div className="container">
-          <p className="muted small">Espace praticien</p>
-          <h1>{data?.practitioner.fullName ?? "Mon agenda"}</h1>
+          <p className="muted small">{t("pro.title")}</p>
+          <h1>{data?.practitioner.fullName ?? t("header.myAgenda")}</h1>
           {stats.data && (
             <div className="stats" style={{ marginTop: 16 }}>
               <div className="card stat">
                 <b>{stats.data.total}</b>
-                <span>Rendez-vous sur 30 jours</span>
+                <span>{t("pro.statTotal")}</span>
               </div>
               <div className="card stat">
                 <b>{stats.data.counts.honored}</b>
-                <span>Consultations honorées</span>
+                <span>{t("pro.statHonored")}</span>
               </div>
               <div className="card stat">
                 <b>{stats.data.counts.cancelled}</b>
-                <span>Annulations</span>
+                <span>{t("pro.statCancelled")}</span>
               </div>
               <div className="card stat">
                 <b style={{ color: stats.data.noShowRate > 15 ? "var(--danger)" : undefined }}>{stats.data.noShowRate} %</b>
-                <span>Taux d&apos;absence</span>
+                <span>{t("pro.statNoShow")}</span>
               </div>
             </div>
           )}
           <div className="tabs" role="tablist">
             <button role="tab" aria-selected={tab === "agenda"} onClick={() => setParams({})}>
-              Agenda
+              {t("nav.agenda")}
             </button>
             <button role="tab" aria-selected={tab === "abonnement"} onClick={() => setParams({ onglet: "abonnement" })}>
-              Abonnement
-              {subscription.data && !subscription.data.published && <span className="tag tag-danger" style={{ marginLeft: 6 }}>Non publié</span>}
-              {subscription.data?.published && subscription.data.daysLeft <= 14 && <span className="tag tag-ochre" style={{ marginLeft: 6 }}>{subscription.data.daysLeft} j</span>}
+              {t("nav.subscription")}
+              {subscription.data && !subscription.data.published && <span className="tag tag-danger" style={{ marginInlineStart: 6 }}>{t("pro.notPublished")}</span>}
+              {subscription.data?.published && subscription.data.daysLeft <= 14 && <span className="tag tag-ochre" style={{ marginInlineStart: 6 }}>{t("pro.daysShort", { n: subscription.data.daysLeft })}</span>}
             </button>
           </div>
         </div>
@@ -157,11 +160,9 @@ export default function Pro() {
           <p className={`alert ${subscription.data.published ? "alert-warn" : "alert-error"}`} style={{ marginBottom: 14 }}>
             <Icon name="info" />
             <span>
-              {subscription.data.published
-                ? `Votre abonnement expire dans ${subscription.data.daysLeft} jour${subscription.data.daysLeft > 1 ? "s" : ""}. `
-                : "Votre profil n'est pas visible des patients. "}
+              {subscription.data.published ? `${tn("sub.expiresIn", subscription.data.daysLeft)}. ` : `${t("pro.notVisible")} `}
               <button type="button" className="link-btn" onClick={() => setParams({ onglet: "abonnement" })}>
-                {subscription.data.published ? "Renouveler" : "Activer mon abonnement"}
+                {subscription.data.published ? t("pro.renew") : t("pro.activate")}
               </button>
             </span>
           </p>
@@ -169,13 +170,11 @@ export default function Pro() {
         {data && (
           <div className="row" style={{ justifyContent: "space-between", marginBottom: 14 }}>
             <button type="button" className="btn btn-sm btn-outline" onClick={() => setFrom(shiftDate(data.from, -7))}>
-              <Icon name="chevronLeft" size={16} /> Semaine précédente
+              <Icon name="chevronLeft" size={16} /> {t("pro.previousWeek")}
             </button>
-            <b>
-              Du {dayMonth(data.from)} au {dayMonth(data.to)}
-            </b>
+            <b>{t("pro.range", { from: dayMonth(data.from), to: dayMonth(data.to) })}</b>
             <button type="button" className="btn btn-sm btn-outline" onClick={() => setFrom(shiftDate(data.from, 7))}>
-              Semaine suivante <Icon name="chevronRight" size={16} />
+              {t("pro.nextWeek")} <Icon name="chevronRight" size={16} />
             </button>
           </div>
         )}
@@ -188,9 +187,9 @@ export default function Pro() {
             return (
               <section key={day} className="card agenda-day">
                 <h3>
-                  {longDate(day)} <span className="muted small">· {items.filter((a) => a.status !== "cancelled").length} rendez-vous</span>
+                  {longDate(day)} <span className="muted small">· {t("pro.dayCount", { n: items.filter((a) => a.status !== "cancelled").length })}</span>
                 </h3>
-                {items.length === 0 && <p className="muted small" style={{ padding: "12px 16px" }}>Aucun rendez-vous.</p>}
+                {items.length === 0 && <p className="muted small" style={{ padding: "12px 16px" }}>{t("pro.noAppointments")}</p>}
                 {items.map((a) => {
                   const started = new Date(a.startsAt).getTime() <= now;
                   const active = a.status === "pending" || a.status === "confirmed";
@@ -202,12 +201,14 @@ export default function Pro() {
                           {a.patient?.firstName} {a.patient?.lastName}
                         </b>{" "}
                         <span className={`tag ${a.status === "cancelled" || a.status === "no_show" ? "tag-danger" : a.status === "honored" ? "tag-green" : "tag-indigo"}`}>
-                          {STATUS_LABELS[a.status]}
+                          {statusLabel(a.status)}
                         </span>
-                        {a.firstVisit && <span className="tag tag-ochre" style={{ marginLeft: 4 }}>1re visite</span>}
+                        {a.firstVisit && <span className="tag tag-ochre" style={{ marginInlineStart: 4 }}>{t("pro.firstVisit")}</span>}
                         <p className="small muted">
-                          <a href={`tel:${a.patient?.phone}`}>{a.patient?.phone}</a>
-                          {a.reason && <> · Motif : {a.reason}</>}
+                          <a href={`tel:${a.patient?.phone}`} dir="ltr">
+                            {a.patient?.phone}
+                          </a>
+                          {a.reason && <> · {t("pro.reason", { reason: a.reason })}</>}
                         </p>
                       </div>
                       {active && (
@@ -215,19 +216,19 @@ export default function Pro() {
                           {started ? (
                             <>
                               <button type="button" className="btn btn-sm btn-indigo" onClick={() => setStatus(a, "honored")}>
-                                <Icon name="check" size={16} /> Honoré
+                                <Icon name="check" size={16} /> {statusLabel("honored")}
                               </button>
                               <button type="button" className="btn btn-sm btn-danger" onClick={() => setStatus(a, "no_show")}>
-                                Absent
+                                {statusLabel("no_show")}
                               </button>
                             </>
                           ) : (
                             <button
                               type="button"
                               className="btn btn-sm btn-danger"
-                              onClick={() => window.confirm("Annuler ce rendez-vous ? Le patient sera prévenu par SMS.") && setStatus(a, "cancelled")}
+                              onClick={() => window.confirm(t("pro.cancelConfirm")) && setStatus(a, "cancelled")}
                             >
-                              Annuler
+                              {t("common.cancel")}
                             </button>
                           )}
                         </div>

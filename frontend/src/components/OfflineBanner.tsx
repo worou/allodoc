@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
+import { useI18n } from "../lib/i18n";
 import { isNativeApp } from "../lib/install";
 
 /** Bandeau hors ligne + enregistrement du service worker (cache des pages et listes déjà consultées). */
 export function OfflineBanner() {
+  const { t } = useI18n();
   const [offline, setOffline] = useState(false);
 
   useEffect(() => {
@@ -23,7 +25,7 @@ export function OfflineBanner() {
   if (!offline) return null;
   return (
     <div className="offline-banner" role="status">
-      Vous êtes hors ligne : les pages déjà consultées restent disponibles, la réservation reprendra au retour du réseau.
+      {t("offline.banner")}
     </div>
   );
 }

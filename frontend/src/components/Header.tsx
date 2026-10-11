@@ -1,6 +1,7 @@
 import { Link, useLocation } from "react-router";
-import { useEffect, useRef, useState } from "react";
-import { COUNTRY_NAMES, COUNTRY_PATHS, countryFromPath } from "../lib/api";
+import { useEffect, useRef, useState, type RefObject } from "react";
+import { COUNTRY_CODES, COUNTRY_PATHS, countryFromPath, countryName } from "../lib/api";
+import { LANGUAGES, useI18n } from "../lib/i18n";
 import type { CountryCode } from "../lib/types";
 import { Flag } from "./Flag";
 import { Icon } from "./Icon";
@@ -31,17 +32,10 @@ export function useRememberedCountry(): CountryCode | null {
   return code;
 }
 
-function CountryPicker() {
-  const { pathname } = useLocation();
-  const fromPath = countryFromPath(pathname.split("/")[1] ?? "");
-  const remembered = useRememberedCountry();
-  const current = fromPath ?? remembered;
+/** Menu déroulant fermé au clic à l'extérieur ou avec Échap. */
+function useDropdown(): [boolean, (open: boolean | ((v: boolean) => boolean)) => void, RefObject<HTMLDivElement | null>] {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (fromPath) rememberCountry(fromPath);
-  }, [fromPath]);
 
   useEffect(() => {
     const close = (e: MouseEvent) => {
@@ -56,16 +50,31 @@ function CountryPicker() {
     };
   }, []);
 
+  return [open, setOpen, ref];
+}
+
+function CountryPicker() {
+  const { t } = useI18n();
+  const { pathname } = useLocation();
+  const fromPath = countryFromPath(pathname.split("/")[1] ?? "");
+  const remembered = useRememberedCountry();
+  const current = fromPath ?? remembered;
+  const [open, setOpen, ref] = useDropdown();
+
+  useEffect(() => {
+    if (fromPath) rememberCountry(fromPath);
+  }, [fromPath]);
+
   return (
     <div className="country-picker" ref={ref}>
       <button type="button" aria-haspopup="true" aria-expanded={open} onClick={() => setOpen((v) => !v)}>
         {current ? <Flag code={current} width={24} /> : <Icon name="pin" size={18} />}
-        <span className="country-label">{current ? COUNTRY_NAMES[current] : "Choisir un pays"}</span>
+        <span className="country-label">{current ? countryName(current) : t("header.chooseCountry")}</span>
         <Icon name="chevronDown" size={16} />
       </button>
       {open && (
         <ul className="country-menu" role="menu">
-          {(Object.keys(COUNTRY_NAMES) as CountryCode[]).map((code) => (
+          {COUNTRY_CODES.map((code) => (
             <li key={code} role="none">
               <Link
                 role="menuitem"
@@ -78,8 +87,8 @@ function CountryPicker() {
               >
                 <Flag code={code} width={32} />
                 <span>
-                  {COUNTRY_NAMES[code]}
-                  <small>{CAPITALS[code]} et régions</small>
+                  {countryName(code)}
+                  <small>{t("header.capitalAndRegions", { capital: CAPITALS[code] })}</small>
                 </span>
               </Link>
             </li>
@@ -90,8 +99,50 @@ function CountryPicker() {
   );
 }
 
+/** Choix de la langue de l'interface : français, anglais, espagnol, portugais, arabe. */
+function LanguagePicker() {
+  const { lang, setLang, t } = useI18n();
+  const [open, setOpen, ref] = useDropdown();
+  const currentLabel = LANGUAGES.find((l) => l.code === lang)?.label ?? lang;
+
+  return (
+    <div className="country-picker lang-picker" ref={ref}>
+      <button type="button" aria-haspopup="true" aria-expanded={open} aria-label={t("header.language")} onClick={() => setOpen((v) => !v)}>
+        <Icon name="language" size={18} />
+        <span className="lang-code" aria-hidden="true">{lang.toUpperCase()}</span>
+        <span className="country-label">{currentLabel}</span>
+        <Icon name="chevronDown" size={16} />
+      </button>
+      {open && (
+        <ul className="country-menu lang-menu" role="menu" aria-label={t("header.language")}>
+          {LANGUAGES.map((l) => (
+            <li key={l.code} role="none">
+              <button
+                type="button"
+                role="menuitemradio"
+                aria-checked={l.code === lang}
+                lang={l.code}
+                dir={l.code === "ar" ? "rtl" : "ltr"}
+                onClick={() => {
+                  setLang(l.code);
+                  setOpen(false);
+                }}
+              >
+                <span className="lang-badge" aria-hidden="true">{l.code.toUpperCase()}</span>
+                <span>{l.label}</span>
+                {l.code === lang && <Icon name="check" size={16} className="lang-check" />}
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}
+
 export function Header() {
   const { user, ready } = useAuth();
+  const { t } = useI18n();
 
   return (
     <header className="site-header">
@@ -100,28 +151,29 @@ export function Header() {
         <div className="header-spacer" />
         {(!user || !hasRole(user, "ROLE_PRACTITIONER")) && (
           <Link to="/pro" className="header-link header-pro">
-            Vous êtes soignant ?
+            {t("header.forProfessionals")}
           </Link>
         )}
         {hasRole(user, "ROLE_PRACTITIONER") && (
           <Link to="/pro" className="header-link header-pro">
-            Mon agenda
+            {t("header.myAgenda")}
           </Link>
         )}
         {hasRole(user, "ROLE_COUNTRY_ADMIN") && (
           <Link to="/admin" className="header-link header-pro">
-            Administration
+            {t("header.admin")}
           </Link>
         )}
-        <Link to="/application" className="header-link header-app" aria-label="Télécharger l'application mobile">
+        <Link to="/application" className="header-link header-app" aria-label={t("header.downloadAppLabel")}>
           <Icon name="smartphone" size={18} />
-          <span className="country-label">Télécharger l&apos;app</span>
+          <span className="country-label">{t("header.downloadApp")}</span>
         </Link>
         <CountryPicker />
+        <LanguagePicker />
         {ready && (
-          <Link to={user ? "/compte" : "/connexion"} className="header-link row" aria-label={user ? "Mon compte" : "Se connecter"}>
+          <Link to={user ? "/compte" : "/connexion"} className="header-link row" aria-label={user ? t("header.myAccount") : t("nav.login")}>
             <Icon name="user" size={20} />
-            <span className="country-label">{user ? user.firstName ?? "Mon compte" : "Se connecter"}</span>
+            <span className="country-label">{user ? user.firstName ?? t("header.myAccount") : t("nav.login")}</span>
           </Link>
         )}
       </div>

@@ -1,13 +1,16 @@
+import { countryName } from "../lib/api";
+import { useI18n } from "../lib/i18n";
 import type { CountryCode } from "../lib/types";
 
 /** Drapeaux en SVG : les emojis drapeaux ne s'affichent pas sous Windows ni sur beaucoup d'Android d'entrée de gamme. */
 export function Flag({ code, width = 28 }: { code: CountryCode; width?: number }) {
+  const { t } = useI18n();
   const height = Math.round((width * 2) / 3);
-  const common = { width, height, viewBox: "0 0 30 20", className: "flag", role: "img" as const };
+  const common = { width, height, viewBox: "0 0 30 20", className: "flag", role: "img" as const, "aria-label": t("flag.label", { country: countryName(code) }) };
 
   if (code === "ML") {
     return (
-      <svg {...common} aria-label="Drapeau du Mali">
+      <svg {...common}>
         <rect width="10" height="20" fill="#14B53A" />
         <rect x="10" width="10" height="20" fill="#FCD116" />
         <rect x="20" width="10" height="20" fill="#CE1126" />
@@ -16,7 +19,7 @@ export function Flag({ code, width = 28 }: { code: CountryCode; width?: number }
   }
   if (code === "BF") {
     return (
-      <svg {...common} aria-label="Drapeau du Burkina Faso">
+      <svg {...common}>
         <rect width="30" height="10" fill="#EF2B2D" />
         <rect y="10" width="30" height="10" fill="#009E49" />
         <path fill="#FCD116" d="M15 6.2l.94 2.9h3.05l-2.47 1.8.94 2.9L15 12l-2.46 1.8.94-2.9-2.47-1.8h3.05z" />
@@ -24,7 +27,7 @@ export function Flag({ code, width = 28 }: { code: CountryCode; width?: number }
     );
   }
   return (
-    <svg {...common} aria-label="Drapeau du Niger">
+    <svg {...common}>
       <rect width="30" height="6.67" fill="#E05206" />
       <rect y="6.67" width="30" height="6.67" fill="#FFFFFF" />
       <rect y="13.33" width="30" height="6.67" fill="#0DB02B" />

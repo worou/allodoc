@@ -1,6 +1,7 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import App from "./App.tsx";
+import { LanguageProvider } from "./lib/i18n";
 import { initInstallCapture } from "./lib/install";
 import "./index.css";
 
@@ -9,6 +10,8 @@ initInstallCapture();
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
-    <App />
+    <LanguageProvider>
+      <App />
+    </LanguageProvider>
   </StrictMode>,
 );
