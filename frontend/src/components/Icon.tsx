@@ -2,6 +2,7 @@
 const PATHS: Record<string, string> = {
   search: "M11 4a7 7 0 1 0 0 14 7 7 0 0 0 0-14zm9 16-4.3-4.3",
   pin: "M12 21s-7-6.1-7-11.5A7 7 0 0 1 19 9.5C19 14.9 12 21 12 21zm0-9a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5z",
+  globe: "M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM3 12h18M12 3c2.5 2.5 3.8 5.5 3.8 9s-1.3 6.5-3.8 9c-2.5-2.5-3.8-5.5-3.8-9S9.5 5.5 12 3z",
   calendar: "M4 6h16v14H4zM4 10h16M9 3v4M15 3v4",
   clock: "M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zm0 4v5l3 2",
   chevronLeft: "m15 18-6-6 6-6",
@@ -43,9 +44,13 @@ const PATHS: Record<string, string> = {
   edit: "M4 20h4L19 9l-4-4L4 16zM13 7l4 4",
 };
 
+/** Flèches retournées en arabe (lecture de droite à gauche). */
+const DIRECTIONAL = new Set(["chevronLeft", "chevronRight"]);
+
 export function Icon({ name, size = 20, className, strokeWidth = 2 }: { name: string; size?: number; className?: string; strokeWidth?: number }) {
+  const classes = [className, DIRECTIONAL.has(name) ? "flip-rtl" : null].filter(Boolean).join(" ") || undefined;
   return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" className={className} aria-hidden="true">
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" className={classes} aria-hidden="true">
       <path d={PATHS[name] ?? PATHS.stethoscope} />
     </svg>
   );

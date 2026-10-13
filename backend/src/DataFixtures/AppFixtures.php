@@ -48,6 +48,52 @@ final class AppFixtures extends Fixture
             'languages' => ['ha', 'dje', 'ff'],
             'insurances' => ['Mutuelle', 'Assurance privée'],
         ],
+        'SN' => [
+            'last' => ['Ndiaye', 'Diop', 'Fall', 'Sow', 'Faye', 'Sarr', 'Mbaye', 'Gueye', 'Ba', 'Seck'],
+            'm' => ['Cheikh', 'Abdou', 'Ibrahima', 'Pape', 'Modou', 'Alioune'],
+            'f' => ['Fatou', 'Aïssatou', 'Ndeye', 'Coumba', 'Khady', 'Mame'],
+            'languages' => ['wo', 'ff', 'wo'],
+            'insurances' => ['IPM', 'CMU', 'Assurance privée'],
+        ],
+        'CI' => [
+            'last' => ['Kouassi', 'Koné', 'Yao', 'Kouadio', 'Bamba', 'Konan', 'Ouattara', 'N\'Guessan', 'Aka', 'Tanoh'],
+            'm' => ['Yao', 'Kouamé', 'Serge', 'Arsène', 'Didier', 'Lassina'],
+            'f' => ['Adjoua', 'Affoué', 'Mariam', 'Ange', 'Grâce', 'Akissi'],
+            'languages' => ['dyu', 'bci', 'dyu'],
+            'insurances' => ['CMU', 'Mutuelle', 'Assurance privée'],
+        ],
+        'NG' => [
+            'base' => 'en', 'feeFactor' => 2.5,
+            'last' => ['Okafor', 'Adeyemi', 'Bello', 'Eze', 'Okonkwo', 'Abubakar', 'Adebayo', 'Nwosu', 'Ibrahim', 'Olawale'],
+            'm' => ['Chinedu', 'Tunde', 'Emeka', 'Musa', 'Segun', 'Ifeanyi'],
+            'f' => ['Ngozi', 'Funmilayo', 'Aisha', 'Chiamaka', 'Bisi', 'Amina'],
+            'languages' => ['yo', 'ig', 'ha'],
+            'insurances' => ['NHIA', 'HMO', 'Private insurance'],
+        ],
+        'KE' => [
+            'base' => 'en', 'feeFactor' => 0.4,
+            'last' => ['Otieno', 'Kamau', 'Wanjiku', 'Odhiambo', 'Mwangi', 'Njoroge', 'Kiprop', 'Achieng', 'Mutua', 'Chebet'],
+            'm' => ['Brian', 'Kevin', 'Peter', 'Dennis', 'Samuel', 'Joseph'],
+            'f' => ['Faith', 'Grace', 'Mercy', 'Wanjiru', 'Akinyi', 'Njeri'],
+            'languages' => ['sw', 'sw', 'sw'],
+            'insurances' => ['SHA', 'Private insurance'],
+        ],
+        'MA' => [
+            'base' => 'ar', 'feeFactor' => 0.04,
+            'last' => ['Alaoui', 'Benali', 'El Idrissi', 'Bennani', 'Tazi', 'Chraibi', 'Berrada', 'El Amrani', 'Fassi', 'Ouazzani'],
+            'm' => ['Youssef', 'Mehdi', 'Karim', 'Omar', 'Hamza', 'Anas'],
+            'f' => ['Salma', 'Imane', 'Nadia', 'Khadija', 'Leïla', 'Zineb'],
+            'languages' => ['fr', 'ber', 'fr'],
+            'insurances' => ['AMO', 'Mutuelle', 'Assurance privée'],
+        ],
+        'ZA' => [
+            'base' => 'en', 'feeFactor' => 0.06,
+            'last' => ['Nkosi', 'Dlamini', 'Mokoena', 'Naidoo', 'Botha', 'Khumalo', 'Ndlovu', 'Van der Merwe', 'Mahlangu', 'Pillay'],
+            'm' => ['Sipho', 'Thabo', 'Johan', 'Lwazi', 'Pieter', 'Kagiso'],
+            'f' => ['Nomvula', 'Zanele', 'Lerato', 'Annelie', 'Thandiwe', 'Priya'],
+            'languages' => ['zu', 'af', 'xh'],
+            'insurances' => ['Medical aid', 'Private insurance'],
+        ],
     ];
 
     /** Structures fictives : [pays, ville, nom, type, adresse]. */
@@ -81,6 +127,18 @@ final class AppFixtures extends Fixture
         ['NE', 'Tahoua', 'Centre médical de l\'Ader', FacilityType::HealthCenter, 'Centre-ville'],
         ['NE', 'Dosso', 'Cabinet médical Djerma', FacilityType::Office, 'Route de Niamey'],
         ['NE', 'Agadez', 'Cabinet de l\'Aïr', FacilityType::Office, 'Près de la grande mosquée'],
+        ['SN', 'Dakar', 'Clinique de la Corniche', FacilityType::Clinic, 'Corniche Ouest, Fann'],
+        ['SN', 'Dakar', 'Centre médical Médina', FacilityType::HealthCenter, 'Médina, rue 22'],
+        ['CI', 'Abidjan', 'Polyclinique Lagune Santé', FacilityType::Clinic, 'Cocody, boulevard Latrille'],
+        ['CI', 'Abidjan', 'Cabinet médical du Plateau', FacilityType::Office, 'Plateau, avenue Chardy'],
+        ['NG', 'Lagos', 'Eko Care Clinic', FacilityType::Clinic, 'Victoria Island, Adeola Odeku Street'],
+        ['NG', 'Lagos', 'Yaba Family Health Centre', FacilityType::HealthCenter, 'Yaba, Herbert Macaulay Way'],
+        ['KE', 'Nairobi', 'Uhuru Medical Centre', FacilityType::Clinic, 'Upper Hill, Ralph Bunche Road'],
+        ['KE', 'Nairobi', 'Westlands Family Clinic', FacilityType::Office, 'Westlands, Waiyaki Way'],
+        ['MA', 'Casablanca', 'Clinique Anfa Santé', FacilityType::Clinic, 'Boulevard d\'Anfa'],
+        ['MA', 'Casablanca', 'Cabinet médical Maârif', FacilityType::Office, 'Maârif, rue Ibnou Mounir'],
+        ['ZA', 'Johannesburg', 'Rosebank Medical Rooms', FacilityType::Office, 'Rosebank, Oxford Road'],
+        ['ZA', 'Johannesburg', 'Soweto Community Clinic', FacilityType::HealthCenter, 'Orlando West, Vilakazi Street'],
     ];
 
     public function load(ObjectManager $manager): void
@@ -90,11 +148,16 @@ final class AppFixtures extends Fixture
 
         ['countries' => $countries, 'cities' => $cities, 'specialties' => $specialties, 'plans' => $plans] = ReferenceLoader::load($manager);
         $facilities = [];
+        $reference = ReferenceLoader::countries();
+        // Générateur séparé pour les pays ajoutés : les données de démo du Mali, du Burkina Faso et du Niger restent identiques.
+        $extra = new Randomizer(new Mt19937(7));
         foreach (self::FACILITIES as [$code, $cityName, $name, $type, $address]) {
-            $facility = new Facility($name, $type, $cities[$cityName], $address.', '.$cityName);
-            [$lat, $lng] = ReferenceLoader::COORDINATES[$cityName];
-            $facility->setCoordinates($lat + mt_rand(-200, 200) / 10000, $lng + mt_rand(-200, 200) / 10000)
-                ->setPhone(ReferenceLoader::COUNTRIES[$code][3].' '.implode(' ', str_split((string) mt_rand(20000000, 99999999), 2)));
+            $rand = \in_array($code, ['ML', 'BF', 'NE'], true) ? mt_rand(...) : $extra->getInt(...);
+            $facility = new Facility($name, $type, $cities[$code.':'.$cityName], $address.', '.$cityName);
+            [$lat, $lng] = ReferenceLoader::coordinates()[$code.':'.$cityName];
+            $length = $reference[$code]['phoneLengths'][0];
+            $facility->setCoordinates($lat + $rand(-200, 200) / 10000, $lng + $rand(-200, 200) / 10000)
+                ->setPhone($reference[$code]['phonePrefix'].' '.implode(' ', str_split((string) $rand(2 * 10 ** ($length - 1), 10 ** $length - 1), 2)));
             $manager->persist($facility);
             $facilities[$code][] = $facility;
         }
@@ -109,7 +172,7 @@ final class AppFixtures extends Fixture
         foreach (self::NAMES as $code => $pool) {
             foreach ($facilities[$code] as $index => $facility) {
                 // Les capitales concentrent l'offre : 3 praticiens par structure de la capitale, 2 ailleurs.
-                $count = $facility->getCity()->getName() === ReferenceLoader::COUNTRIES[$code][1] ? 3 : 2;
+                $count = $facility->getCity()->getName() === $reference[$code]['capital'] ? 3 : 2;
                 for ($n = 0; $n < $count; ++$n) {
                     $gender = mt_rand(0, 1) ? 'f' : 'm';
                     $first = $pool[$gender][mt_rand(0, \count($pool[$gender]) - 1)];
@@ -132,16 +195,19 @@ final class AppFixtures extends Fixture
                     }
                     $p->addSpecialty($specialties[$mainSpecialty]);
                     $p->addFacility($facility);
-                    $p->setFee(match (true) {
+                    // Tarifs de référence en FCFA, ramenés à un ordre de grandeur local pour les autres monnaies.
+                    $fee = match (true) {
                         'medecine-generale' === $mainSpecialty => [5000, 7500, 10000][mt_rand(0, 2)],
                         \in_array($mainSpecialty, ['sage-femme', 'kinesitherapie'], true) => [5000, 7500][mt_rand(0, 1)],
                         default => [10000, 15000, 20000, 25000][mt_rand(0, 3)],
-                    });
-                    $p->setLanguages(array_values(array_unique(['fr', $pool['languages'][mt_rand(0, 2)], ...(mt_rand(0, 3) ? [] : ['en'])])));
+                    };
+                    $p->setFee((int) (round($fee * ($pool['feeFactor'] ?? 1) / 50) * 50));
+                    $base = $pool['base'] ?? 'fr';
+                    $p->setLanguages(array_values(array_unique([$base, $pool['languages'][mt_rand(0, 2)], ...(mt_rand(0, 3) ? [] : ['fr' === $base ? 'en' : 'fr'])])));
                     $p->setInsurances(\array_slice($pool['insurances'], 0, mt_rand(1, \count($pool['insurances']))));
                     $p->setTeleconsultation(0 === mt_rand(0, 2));
                     $p->setDegrees([
-                        sprintf('Doctorat en médecine, %s', ['Université de Bamako', 'Université Joseph Ki-Zerbo', 'Université Abdou Moumouni', 'Université Cheikh Anta Diop'][mt_rand(0, 3)]),
+                        sprintf('Doctorat en médecine, %s', ['Université de Bamako', 'Université Joseph Ki-Zerbo', 'Université Abdou Moumouni', 'Université Cheikh Anta Diop', 'Université de Nairobi', 'Université de Lagos', 'Université du Witwatersrand'][mt_rand(0, 6)]),
                         sprintf('Diplôme d\'études spécialisées, %s', $specialties[$mainSpecialty]->getName()),
                     ]);
                     $p->setBio(sprintf(

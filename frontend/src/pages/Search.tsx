@@ -3,30 +3,31 @@ import { Icon } from "../components/Icon";
 import { PractitionerCard } from "../components/PractitionerCard";
 import { SearchBar } from "../components/SearchBar";
 import { ErrorState, Loading } from "../components/States";
-import { COUNTRY_NAMES, countryFromPath } from "../lib/api";
+import { countryFromPath, countryName } from "../lib/api";
+import { insuranceName, languageName } from "../lib/format";
 import { useApi, useRegions, useSpecialties, useTitle } from "../lib/hooks";
+import { useI18n } from "../lib/i18n";
 import type { SearchResult } from "../lib/types";
 
-const LANGUAGES = [
-  ["bm", "Bambara"], ["mos", "Mooré"], ["ha", "Haoussa"], ["dje", "Zarma"], ["ff", "Peul"], ["dyu", "Dioula"], ["son", "Songhaï"], ["en", "Anglais"],
-];
-const INSURANCES = ["AMO", "AMU (CNAMU)", "Mutuelle", "Assurance privée"];
+/** Langues parlées par les praticiens (filtre), distinctes de la langue de l'interface. */
+const LANGUAGES = ["en", "ar", "pt", "sw", "ha", "yo", "ig", "wo", "bm", "mos", "dje", "ff", "dyu", "son", "ber", "zu", "af"];
+const INSURANCES = ["AMO", "AMU (CNAMU)", "CMU", "IPM", "NHIA", "SHA", "Medical aid", "Mutuelle", "Assurance privée"];
 
 /** Résultats de recherche avec filtres ; tout l'état vit dans l'URL (partageable, bouton retour). */
 export default function Search() {
+  const { lang, t, tn } = useI18n();
   const [params, setParams] = useSearchParams();
   const specialties = useSpecialties();
-  const regions = useRegions();
-
   const country = countryFromPath(params.get("country") ?? "");
+  const regions = useRegions(country);
   const specialty = specialties.find((s) => s.slug === params.get("specialty"));
   const region = regions.find((r) => r.slug === params.get("region") && (!country || r.country === country));
   const page = Math.max(1, Number(params.get("page") ?? 1));
 
-  const label = [specialty?.name ?? (params.get("q") ? `« ${params.get("q")} »` : null), region?.name ?? (country ? COUNTRY_NAMES[country] : null)]
+  const label = [specialty?.name ?? (params.get("q") ? `« ${params.get("q")} »` : null), region?.name ?? (country ? countryName(country) : null)]
     .filter(Boolean)
     .join(" · ");
-  useTitle(label || "Rechercher un praticien");
+  useTitle(label || t("searchPage.title"));
 
   const query = new URLSearchParams(params);
   query.set("perPage", "10");
@@ -52,39 +53,38 @@ export default function Search() {
       <div className="results-head">
         <div className="container">
           <SearchBar
-            key={params.toString()}
+            key={`${lang}:${params.toString()}`}
             compact
             specialties={specialties}
-            regions={regions}
             initial={{ q: params.get("q") ?? undefined, specialty: params.get("specialty") ?? undefined, region: params.get("region") ?? undefined, country: country ?? undefined }}
           />
-          <div className="filters" role="group" aria-label="Filtres">
+          <div className="filters" role="group" aria-label={t("searchPage.filters")}>
             <button
               type="button"
               className="filter-chip"
               aria-pressed={params.get("teleconsultation") === "1"}
               onClick={() => setFilter("teleconsultation", params.get("teleconsultation") === "1" ? null : "1")}
             >
-              <Icon name="video" size={16} /> Téléconsultation
+              <Icon name="video" size={16} /> {t("common.teleconsultation")}
             </button>
             <label className={`filter-chip${params.get("language") ? " active" : ""}`}>
               <Icon name="language" size={16} />
-              <select value={params.get("language") ?? ""} onChange={(e) => setFilter("language", e.target.value || null)} aria-label="Langue parlée">
-                <option value="">Langue parlée</option>
-                {LANGUAGES.map(([code, name]) => (
+              <select value={params.get("language") ?? ""} onChange={(e) => setFilter("language", e.target.value || null)} aria-label={t("searchPage.spokenLanguage")}>
+                <option value="">{t("searchPage.spokenLanguage")}</option>
+                {LANGUAGES.map((code) => (
                   <option key={code} value={code}>
-                    {name}
+                    {languageName({ code, name: code })}
                   </option>
                 ))}
               </select>
             </label>
             <label className={`filter-chip${params.get("insurance") ? " active" : ""}`}>
               <Icon name="shield" size={16} />
-              <select value={params.get("insurance") ?? ""} onChange={(e) => setFilter("insurance", e.target.value || null)} aria-label="Assurance acceptée">
-                <option value="">Assurance</option>
+              <select value={params.get("insurance") ?? ""} onChange={(e) => setFilter("insurance", e.target.value || null)} aria-label={t("searchPage.insuranceLabel")}>
+                <option value="">{t("searchPage.insurance")}</option>
                 {INSURANCES.map((i) => (
                   <option key={i} value={i}>
-                    {i}
+                    {insuranceName(i)}
                   </option>
                 ))}
               </select>
@@ -94,22 +94,22 @@ export default function Search() {
       </div>
 
       <div className="container">
-        {loading && !data && <Loading label="Recherche des praticiens…" />}
+        {loading && !data && <Loading label={t("searchPage.loading")} />}
         {error && <ErrorState message={error.message} onRetry={reload} />}
         {data && (
           <div style={{ opacity: loading ? 0.6 : 1 }}>
             <h1 className="results-count">
-              {data.total} {data.total > 1 ? "praticiens" : "praticien"}
+              {tn("searchPage.results", data.total)}
               {label ? ` · ${label}` : ""}
             </h1>
             {data.total === 0 ? (
               <div className="card empty">
                 <Icon name="search" size={40} />
-                <p style={{ fontWeight: 700 }}>Aucun praticien ne correspond à votre recherche.</p>
-                <p className="muted">Élargissez la zone (tout le pays) ou retirez un filtre.</p>
+                <p style={{ fontWeight: 700 }}>{t("searchPage.empty")}</p>
+                <p className="muted">{t("searchPage.emptyHint")}</p>
                 {country && (
                   <Link to={`/recherche?country=${country}`} className="btn btn-outline btn-sm" style={{ marginTop: 14 }}>
-                    Voir tous les praticiens du {COUNTRY_NAMES[country]}
+                    {t("searchPage.allInCountry", { country: countryName(country) })}
                   </Link>
                 )}
               </div>
@@ -121,7 +121,7 @@ export default function Search() {
               </div>
             )}
             {data.pages > 1 && (
-              <nav className="pagination" aria-label="Pages de résultats">
+              <nav className="pagination" aria-label={t("searchPage.pages")}>
                 {page > 1 && <Link to={pageHref(page - 1)}>‹</Link>}
                 {Array.from({ length: data.pages }, (_, i) => i + 1).map((p) =>
                   p === page ? (

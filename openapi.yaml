@@ -1,13 +1,28 @@
 openapi: 3.2.0
 info:
   title: 'AlloDoc API'
-  description: 'Prise de rendez-vous medicaux - Mali, Burkina Faso, Niger'
+  description: "Prise de rendez-vous medicaux dans toute l'Afrique (55 pays, 5 sous-regions)"
   version: 1.0.0
 servers:
   -
     url: 'http://127.0.0.1:8000'
     description: 'Développement local'
 paths:
+  /api/exchange-rates:
+    get:
+      operationId: exchangeRates
+      tags:
+        - Abonnement
+      responses:
+        '200':
+          description: 'Taux du jour'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExchangeRates'
+      summary: 'Taux de change face au dollar US'
+      description: 'Unités de chaque monnaie (FCFA et monnaies des pays africains) pour 1 $, mises à jour chaque jour ; taux de secours si le service est injoignable. Cache public 1 heure.'
+      parameters: []
   /api/pro/subscription:
     get:
       operationId: proSubscription
@@ -94,6 +109,100 @@ paths:
             format: uuid
           style: simple
           explode: false
+      security:
+        -
+          bearerAuth: []
+  '/api/pro/subscriptions/{id}/paypal':
+    post:
+      operationId: proPayPalStart
+      tags:
+        - Abonnement
+      responses:
+        '200':
+          description: 'Commande PayPal créée'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PayPalOrder'
+        '409':
+          description: 'Commande non réglée par PayPal ou déjà traitée'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: 'PayPal non configuré'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      summary: 'PayPal : créer la commande de paiement'
+      description: 'Commande en attente réglée par PayPal : crée la commande PayPal en dollars US (prix en FCFA converti au taux du jour) et renvoie son identifiant pour le bouton PayPal.'
+      parameters:
+        -
+          name: id
+          in: path
+          description: 'Identifiant du rendez-vous (UUID)'
+          required: true
+          deprecated: false
+          schema:
+            type: string
+            format: uuid
+          style: simple
+          explode: false
+      security:
+        -
+          bearerAuth: []
+  '/api/pro/subscriptions/{id}/paypal/capture':
+    post:
+      operationId: proPayPalCapture
+      tags:
+        - Abonnement
+      responses:
+        '200':
+          description: 'Paiement reçu, abonnement actif'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Subscription'
+        '402':
+          description: 'Paiement non abouti'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: 'Commande PayPal inconnue'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: 'Paiement non conforme ou commande déjà traitée'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      summary: 'PayPal : encaisser et publier le profil'
+      description: 'Après accord du payeur : capture du paiement, vérification de la référence, du montant et de la devise, puis publication du profil (comme une confirmation manuelle).'
+      parameters:
+        -
+          name: id
+          in: path
+          description: 'Identifiant du rendez-vous (UUID)'
+          required: true
+          deprecated: false
+          schema:
+            type: string
+            format: uuid
+          style: simple
+          explode: false
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PayPalCaptureInput'
+        required: true
       security:
         -
           bearerAuth: []
@@ -349,13 +458,10 @@ paths:
           deprecated: false
           schema:
             type: string
-            enum:
-              - ML
-              - BF
-              - NE
+            pattern: '^[A-Z]{2}$'
           style: simple
           explode: false
-          example: ML
+          example: SN
   '/api/practitioners/{slug}':
     get:
       operationId: getPractitioner
@@ -460,15 +566,12 @@ paths:
         -
           name: country
           in: query
-          description: 'Code pays'
+          description: 'Code ISO du pays (55 pays africains)'
           required: false
           deprecated: false
           schema:
             type: string
-            enum:
-              - ML
-              - BF
-              - NE
+            pattern: '^[A-Z]{2}$'
           style: form
           explode: true
           example: ML
@@ -591,6 +694,21 @@ paths:
             default: 10
           style: form
           explode: true
+  /api/subregions:
+    get:
+      operationId: subregions
+      tags:
+        - Annuaire
+      responses:
+        '200':
+          description: 'Sous-régions et pays'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SubregionList'
+      summary: 'Sous-régions africaines'
+      description: 'Les 5 sous-régions (nord, ouest, centre, est, australe) et leurs pays, avec le nombre de régions et de praticiens publiés. Cache public 5 minutes.'
+      parameters: []
   /api/auth/oauth/exchange:
     post:
       operationId: oauthExchange
@@ -1702,19 +1820,37 @@ components:
       description: 'Pays couvert par la plateforme. Ajouter un pays = ajouter une ligne en base, aucun code en dur.'
       properties:
         code:
-          description: "Code ISO 3166-1 alpha-2 (ML, BF, NE), sert d'identifiant dans l'API."
+          description: "Code ISO 3166-1 alpha-2 (ML, SN, KE...), sert d'identifiant dans l'API."
           type: string
         name:
           type: string
         capital:
           type: string
+        subregion:
+          description: 'Sous-région africaine (nord, ouest, centre, est, australe).'
+          default: west
+          type: string
+          enum:
+            - north
+            - west
+            - central
+            - east
+            - southern
         timezone:
-          description: 'Fuseau IANA : Africa/Bamako, Africa/Ouagadougou, Africa/Niamey.'
+          description: 'Fuseau IANA : Africa/Bamako, Africa/Nairobi.'
           type: string
         phonePrefix:
           type: string
+        phoneLengths:
+          description: "Longueurs possibles du numéro national, sans l'indicatif ni le 0 initial."
+          default:
+            - 8
+          type: array
+          items:
+            type:
+              - string
+              - 'null'
         currency:
-          readOnly: true
           default: XOF
           type: string
         languages:
@@ -1732,7 +1868,7 @@ components:
       type: object
       properties:
         code:
-          description: "Code ISO 3166-1 alpha-2 (ML, BF, NE), sert d'identifiant dans l'API."
+          description: "Code ISO 3166-1 alpha-2 (ML, SN, KE...), sert d'identifiant dans l'API."
           type: string
         name:
           type: string
@@ -1744,19 +1880,37 @@ components:
           type: object
           properties:
             code:
-              description: "Code ISO 3166-1 alpha-2 (ML, BF, NE), sert d'identifiant dans l'API."
+              description: "Code ISO 3166-1 alpha-2 (ML, SN, KE...), sert d'identifiant dans l'API."
               type: string
             name:
               type: string
             capital:
               type: string
+            subregion:
+              description: 'Sous-région africaine (nord, ouest, centre, est, australe).'
+              default: west
+              type: string
+              enum:
+                - north
+                - west
+                - central
+                - east
+                - southern
             timezone:
-              description: 'Fuseau IANA : Africa/Bamako, Africa/Ouagadougou, Africa/Niamey.'
+              description: 'Fuseau IANA : Africa/Bamako, Africa/Nairobi.'
               type: string
             phonePrefix:
               type: string
+            phoneLengths:
+              description: "Longueurs possibles du numéro national, sans l'indicatif ni le 0 initial."
+              default:
+                - 8
+              type: array
+              items:
+                type:
+                  - string
+                  - 'null'
             currency:
-              readOnly: true
               default: XOF
               type: string
             languages:
@@ -1779,7 +1933,7 @@ components:
           type: object
           properties:
             code:
-              description: "Code ISO 3166-1 alpha-2 (ML, BF, NE), sert d'identifiant dans l'API."
+              description: "Code ISO 3166-1 alpha-2 (ML, SN, KE...), sert d'identifiant dans l'API."
               type: string
             name:
               type: string
@@ -2189,15 +2343,12 @@ components:
         phone:
           type: string
           example: '70 00 00 01'
-          description: 'SMS : 8 chiffres (avec country) ou format international +223…'
+          description: 'SMS : numéro national (avec country) ou format international (+223…, +234…)'
         country:
           type: string
-          enum:
-            - ML
-            - BF
-            - NE
+          pattern: '^[A-Z]{2}$'
+          description: 'Code ISO 3166-1 alpha-2 (55 pays africains)'
           example: ML
-          description: "Pays pour compléter l'indicatif"
         email:
           type: string
           format: email
@@ -2237,10 +2388,8 @@ components:
           example: '+22370000001'
         country:
           type: string
-          enum:
-            - ML
-            - BF
-            - NE
+          pattern: '^[A-Z]{2}$'
+          description: 'Code ISO 3166-1 alpha-2 (55 pays africains)'
           example: ML
         email:
           type: string
@@ -2296,10 +2445,8 @@ components:
           example: '76 11 22 33'
         country:
           type: string
-          enum:
-            - ML
-            - BF
-            - NE
+          pattern: '^[A-Z]{2}$'
+          description: 'Code ISO 3166-1 alpha-2 (55 pays africains)'
           example: ML
         code:
           type: string
@@ -2367,12 +2514,19 @@ components:
             - cancelled
         paymentMethod:
           type: string
+          example: orange_money
         paymentMethodLabel:
           type: string
         transactionId:
           type:
             - string
             - 'null'
+        amountUsd:
+          type:
+            - number
+            - 'null'
+          description: 'Montant facturé en dollars (paiement PayPal)'
+          example: 17.1
         startsAt:
           type:
             - string
@@ -2417,6 +2571,43 @@ components:
                 - string
                 - 'null'
           description: 'Administration uniquement'
+    PayPalOrder:
+      type: object
+      properties:
+        orderId:
+          type: string
+        amountUsd:
+          type: number
+          example: 17.1
+    PayPalCaptureInput:
+      type: object
+      properties:
+        orderId:
+          type: string
+          description: 'Identifiant renvoyé par /paypal (data.orderID du bouton PayPal)'
+      required:
+        - orderId
+    ExchangeRates:
+      type: object
+      properties:
+        base:
+          type: string
+          example: USD
+        rates:
+          type: object
+          additionalProperties:
+            type: number
+          example:
+            XOF: 585.4
+            KES: 129.7
+        updatedAt:
+          type:
+            - string
+            - 'null'
+          format: date-time
+        source:
+          type: string
+          example: open.er-api.com
     SubscriptionStatus:
       type: object
       properties:
@@ -2459,11 +2650,25 @@ components:
                 type: string
               label:
                 type: string
+          description: 'Moyens de paiement proposés dans le pays du praticien'
         paymentAccount:
           type: object
           additionalProperties:
-            type: string
-          description: 'Titulaire et numéros marchands du pays'
+            type:
+              - string
+              - 'null'
+          description: 'Titulaire ("holder") et numéro de réception par moyen ; null : coordonnées envoyées par SMS par l''équipe AlloDoc'
+        paypal:
+          type:
+            - object
+            - 'null'
+          properties:
+            clientId:
+              type: string
+            currency:
+              type: string
+              example: USD
+          description: "null si PayPal n'est pas configuré"
         pending:
           oneOf:
             -
@@ -2650,10 +2855,8 @@ components:
           properties:
             code:
               type: string
-              enum:
-                - ML
-                - BF
-                - NE
+              pattern: '^[A-Z]{2}$'
+              description: 'Code ISO 3166-1 alpha-2 (55 pays africains)'
               example: ML
             name:
               type: string
@@ -2819,10 +3022,8 @@ components:
           properties:
             code:
               type: string
-              enum:
-                - ML
-                - BF
-                - NE
+              pattern: '^[A-Z]{2}$'
+              description: 'Code ISO 3166-1 alpha-2 (55 pays africains)'
               example: ML
             name:
               type: string
@@ -2832,6 +3033,16 @@ components:
               type: string
             phonePrefix:
               type: string
+            currency:
+              type: string
+            subregion:
+              type: string
+              enum:
+                - north
+                - west
+                - central
+                - east
+                - southern
             languages:
               type: array
               items:
@@ -2872,6 +3083,41 @@ components:
                 type: string
               practitionerCount:
                 type: integer
+    SubregionList:
+      type: array
+      items:
+        type: object
+        properties:
+          code:
+            type: string
+            enum:
+              - north
+              - west
+              - central
+              - east
+              - southern
+          name:
+            type: string
+          practitionerCount:
+            type: integer
+          countries:
+            type: array
+            items:
+              type: object
+              properties:
+                code:
+                  type: string
+                  pattern: '^[A-Z]{2}$'
+                  description: 'Code ISO 3166-1 alpha-2 (55 pays africains)'
+                  example: ML
+                name:
+                  type: string
+                capital:
+                  type: string
+                regionCount:
+                  type: integer
+                practitionerCount:
+                  type: integer
     BookingInput:
       type: object
       properties:

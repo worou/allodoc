@@ -1,24 +1,24 @@
+import { lazy, Suspense, useMemo, type CSSProperties } from "react";
 import { Link } from "react-router";
-import { Flag, FLAG_STRIPES } from "../components/Flag";
+import { Flag } from "../components/Flag";
 import { Icon } from "../components/Icon";
 import { HeroSun } from "../components/Logo";
 import { SearchBar } from "../components/SearchBar";
-import { COUNTRY_PATHS } from "../lib/api";
-import { useRegions, useSpecialties, useTitle } from "../lib/hooks";
-import type { CountryCode } from "../lib/types";
+import { SUBREGIONS, subregionName, subregionPath } from "../lib/africa";
+import { useCountries, useSpecialties, useTitle } from "../lib/hooks";
+import { Trans, useI18n } from "../lib/i18n";
 
-const COUNTRIES: { code: CountryCode; name: string; capital: string; regions: string }[] = [
-  { code: "ML", name: "Mali", capital: "Bamako", regions: "19 régions et le district de Bamako" },
-  { code: "BF", name: "Burkina Faso", capital: "Ouagadougou", regions: "17 régions" },
-  { code: "NE", name: "Niger", capital: "Niamey", regions: "7 régions et Niamey" },
-];
+// Carte chargée à part : le premier écran reste léger sur réseau 3G.
+const AfricaMap = lazy(() => import("../components/AfricaMap"));
 
 const POPULAR = ["medecine-generale", "pediatrie", "gynecologie", "dentiste", "ophtalmologie", "cardiologie"];
 
 export default function Home() {
   useTitle("");
+  const { t, tn } = useI18n();
   const specialties = useSpecialties();
-  const regions = useRegions();
+  const countries = useCountries();
+  const subregionOf = useMemo(() => Object.fromEntries(countries.map((c) => [c.code, c.subregion])), [countries]);
   const popular = POPULAR.map((slug) => specialties.find((s) => s.slug === slug)).filter((s) => s !== undefined);
 
   return (
@@ -27,12 +27,10 @@ export default function Home() {
         <HeroSun />
         <div className="container">
           <h1>
-            Votre rendez-vous chez le médecin, <em>sans file d&apos;attente</em>.
+            <Trans text={t("home.heroTitle")} values={{ em: <em>{t("home.heroTitleEm")}</em> }} />
           </h1>
-          <p className="lead">
-            Trouvez un praticien vérifié au Mali, au Burkina Faso ou au Niger, choisissez un horaire libre et recevez la confirmation par SMS.
-          </p>
-          <SearchBar specialties={specialties} regions={regions} />
+          <p className="lead">{t("home.heroLead")}</p>
+          <SearchBar specialties={specialties} />
           <div className="hero-chips">
             {popular.map((s) => (
               <Link key={s.slug} to={`/recherche?specialty=${s.slug}`}>
@@ -48,29 +46,41 @@ export default function Home() {
           <div className="section-head">
             <div>
               <h2 className="section-title">
-                Choisissez votre <span className="accent">pays</span>
+                <Trans text={t("home.chooseCountry")} values={{ accent: <span className="accent">{t("home.chooseCountryAccent")}</span> }} />
               </h2>
-              <p className="section-sub">Retrouvez les praticiens de chaque région, de la capitale aux villes de l&apos;intérieur.</p>
+              <p className="section-sub">{t("home.chooseCountrySub")}</p>
             </div>
           </div>
-          <div className="country-grid">
-            {COUNTRIES.map((c) => (
-              <Link key={c.code} to={`/${COUNTRY_PATHS[c.code]}`} className="card country-card">
-                <div className="stripe" style={{ background: FLAG_STRIPES[c.code] }} />
-                <div className="body">
-                  <Flag code={c.code} width={60} />
-                  <div>
-                    <h3>{c.name}</h3>
-                    <p className="muted small">
-                      {c.capital} · {c.regions}
-                    </p>
-                  </div>
-                </div>
-                <span className="cta">
-                  Voir les praticiens <Icon name="chevronRight" />
-                </span>
+          <div className="home-africa">
+            <div className="subregion-cards">
+              {SUBREGIONS.map((s) => {
+                const group = countries.filter((c) => c.subregion === s.code);
+                return (
+                  <Link key={s.code} to={subregionPath(s.code)} className="card subregion-card" style={{ "--tab": s.color } as CSSProperties}>
+                    <span className="subregion-card-head">
+                      <span className="dot" aria-hidden="true" />
+                      <b>{subregionName(s.code)}</b>
+                      {group.length > 0 && <small className="muted">{tn("africa.countries", group.length)}</small>}
+                    </span>
+                    <span className="flag-row" aria-hidden="true">
+                      {group.slice(0, 8).map((c) => (
+                        <Flag key={c.code} code={c.code} width={26} />
+                      ))}
+                      {group.length > 8 && <span className="more">+{group.length - 8}</span>}
+                    </span>
+                    <Icon name="chevronRight" className="chev" />
+                  </Link>
+                );
+              })}
+              <Link to="/afrique" className="btn btn-outline" style={{ alignSelf: "flex-start" }}>
+                <Icon name="globe" size={18} /> {t("home.exploreAfrica")}
               </Link>
-            ))}
+            </div>
+            <div className="home-map">
+              <Suspense fallback={<div className="skeleton map-skeleton" />}>
+                <AfricaMap subregions={subregionOf} />
+              </Suspense>
+            </div>
           </div>
         </div>
       </section>
@@ -79,8 +89,8 @@ export default function Home() {
         <div className="container">
           <div className="section-head">
             <div>
-              <h2 className="section-title">Spécialités</h2>
-              <p className="section-sub">Des soins de premier recours aux spécialistes.</p>
+              <h2 className="section-title">{t("home.specialties")}</h2>
+              <p className="section-sub">{t("home.specialtiesSub")}</p>
             </div>
           </div>
           <div className="specialty-grid">
@@ -101,24 +111,24 @@ export default function Home() {
       <section className="section" style={{ background: "var(--white)", borderTop: "1px solid var(--line)", borderBottom: "1px solid var(--line)" }}>
         <div className="container">
           <h2 className="section-title" style={{ marginBottom: 22 }}>
-            Comment ça <span className="accent">marche</span> ?
+            <Trans text={t("home.howItWorks")} values={{ accent: <span className="accent">{t("home.howItWorksAccent")}</span> }} />
           </h2>
           <div className="steps">
             <div className="card step">
-              <h3>Cherchez</h3>
-              <p>Par spécialité, nom du médecin ou clinique, dans votre région.</p>
+              <h3>{t("home.step1Title")}</h3>
+              <p>{t("home.step1")}</p>
             </div>
             <div className="card step">
-              <h3>Choisissez un horaire</h3>
-              <p>Les créneaux libres s&apos;affichent en temps réel, jour par jour.</p>
+              <h3>{t("home.step2Title")}</h3>
+              <p>{t("home.step2")}</p>
             </div>
             <div className="card step">
-              <h3>Confirmez par SMS</h3>
-              <p>Un code par SMS suffit, sans mot de passe. Vous pouvez réserver pour un enfant ou un proche.</p>
+              <h3>{t("home.step3Title")}</h3>
+              <p>{t("home.step3")}</p>
             </div>
             <div className="card step">
-              <h3>Recevez un rappel</h3>
-              <p>Un SMS vous rappelle le rendez-vous la veille. Empêché ? Annulez en un clic.</p>
+              <h3>{t("home.step4Title")}</h3>
+              <p>{t("home.step4")}</p>
             </div>
           </div>
         </div>
@@ -128,13 +138,11 @@ export default function Home() {
         <div className="container">
           <div className="pro-banner">
             <div>
-              <h2>Vous êtes médecin, sage-femme ou clinique ?</h2>
-              <p style={{ marginTop: 8, opacity: 0.92 }}>
-                Gérez votre agenda, réduisez les absences grâce aux rappels SMS et faites-vous connaître des patients de votre région. Gratuit pendant le lancement.
-              </p>
+              <h2>{t("home.proTitle")}</h2>
+              <p style={{ marginTop: 8, opacity: 0.92 }}>{t("home.proText")}</p>
             </div>
             <Link to="/pro" className="btn">
-              Découvrir l&apos;espace praticien
+              {t("home.proCta")}
             </Link>
           </div>
         </div>

@@ -1,9 +1,11 @@
 import { useNavigate, useSearchParams } from "react-router";
 import { OtpLogin } from "../components/OtpLogin";
 import { useTitle } from "../lib/hooks";
+import { useI18n } from "../lib/i18n";
 
 export default function Login() {
-  useTitle("Connexion");
+  const { t } = useI18n();
+  useTitle(t("loginPage.title"));
   const navigate = useNavigate();
   const [params] = useSearchParams();
   const requested = params.get("next");
@@ -25,12 +27,12 @@ export default function Login() {
         }}
       />
       <div className="card" style={{ padding: 16, marginTop: 16 }}>
-        <p className="small" style={{ fontWeight: 700, marginBottom: 6 }}>Comptes de démonstration (par SMS)</p>
-        <ul className="small muted" style={{ margin: 0, paddingLeft: 18 }}>
-          <li>Patient : 70 00 00 01 (Mali)</li>
-          <li>Praticien : 70 00 00 02 (Mali)</li>
-          <li>Administrateur Mali : 70 00 00 03 (Mali)</li>
-          <li>Super-administrateur : 90 00 00 00 (Niger)</li>
+        <p className="small" style={{ fontWeight: 700, marginBottom: 6 }}>{t("loginPage.demo")}</p>
+        <ul className="small muted" style={{ margin: 0, paddingInlineStart: 18 }}>
+          <li>{t("loginPage.demoPatient")}</li>
+          <li>{t("loginPage.demoPractitioner")}</li>
+          <li>{t("loginPage.demoAdmin")}</li>
+          <li>{t("loginPage.demoSuper")}</li>
         </ul>
       </div>
     </div>

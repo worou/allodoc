@@ -1,3 +1,4 @@
+import { getLang, intlLocale, translate, translateOr } from "./i18n";
 import type { CountryCode } from "./types";
 
 export const API_URL = import.meta.env.VITE_API_URL ?? "http://127.0.0.1:8000";
@@ -47,17 +48,45 @@ export async function api<T>(path: string, init: RequestInit & { auth?: boolean 
   const data = text ? JSON.parse(text) : null;
   if (!response.ok) {
     if (response.status === 401 && token) setToken(null);
-    throw new ApiError(data?.error ?? data?.detail ?? "Le service est momentanément indisponible.", response.status, data?.code);
+    throw new ApiError(data?.error ?? data?.detail ?? translate("error.service"), response.status, data?.code);
   }
   return data as T;
 }
 
-/** Correspondance entre le code ISO et l'URL publique (/ml, /bf, /ne). */
-export const COUNTRY_PATHS: Record<CountryCode, string> = { ML: "ml", BF: "bf", NE: "ne" };
-
-export function countryFromPath(path: string): CountryCode | null {
-  const code = path.toUpperCase();
-  return code === "ML" || code === "BF" || code === "NE" ? code : null;
+/** URL publique d'un pays : son code ISO en minuscules (/ml, /sn, /ke...). */
+export function countryPath(code: CountryCode) {
+  return `/${code.toLowerCase()}`;
 }
 
-export const COUNTRY_NAMES: Record<CountryCode, string> = { ML: "Mali", BF: "Burkina Faso", NE: "Niger" };
+/** Code pays lu dans une URL ; l'existence du pays est vérifiée par l'API (404 sinon). */
+export function countryFromPath(path: string): CountryCode | null {
+  return /^[a-z]{2}$/i.test(path) ? path.toUpperCase() : null;
+}
+
+const displayNames = new Map<string, Intl.DisplayNames | null>();
+
+/**
+ * Nom du pays dans la langue de l'interface (Intl.DisplayNames), avec repli sur les traductions
+ * et le nom français du référentiel pour les anciens navigateurs (WebView Android d'entrée de gamme).
+ */
+export function countryName(code: CountryCode) {
+  const lang = getLang();
+  const fixed = translateOr(`country.${code}`, "");
+  if (fixed) return fixed;
+  if (!displayNames.has(lang)) {
+    try {
+      displayNames.set(lang, new Intl.DisplayNames([intlLocale(lang)], { type: "region" }));
+    } catch {
+      displayNames.set(lang, null);
+    }
+  }
+  const name = displayNames.get(lang)?.of(code);
+  return name && name !== code ? name : (FRENCH_NAMES[code] ?? code);
+}
+
+/** Noms du référentiel (français), mémorisés à la lecture de /api/countries. */
+const FRENCH_NAMES: Record<string, string> = {};
+
+export function rememberCountryNames(countries: { code: CountryCode; name: string }[]) {
+  for (const c of countries) FRENCH_NAMES[c.code] = c.name;
+}

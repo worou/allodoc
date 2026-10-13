@@ -152,6 +152,24 @@ final class OpenApiFactory implements OpenApiFactoryInterface
                 parameters: [$this->uuid()], security: $auth,
                 responses: [200 => ['Subscription', 'Commande annulée'], 409 => ['Error', 'Commande déjà traitée']],
             )],
+            '/api/pro/subscriptions/{id}/paypal' => ['post' => $this->op(
+                'proPayPalStart', 'Abonnement', 'PayPal : créer la commande de paiement',
+                'Commande en attente réglée par PayPal : crée la commande PayPal en dollars US (prix en FCFA converti au taux du jour) et renvoie son identifiant pour le bouton PayPal.',
+                parameters: [$this->uuid()], security: $auth,
+                responses: [200 => ['PayPalOrder', 'Commande PayPal créée'], 409 => ['Error', 'Commande non réglée par PayPal ou déjà traitée'], 503 => ['Error', 'PayPal non configuré']],
+            )],
+            '/api/pro/subscriptions/{id}/paypal/capture' => ['post' => $this->op(
+                'proPayPalCapture', 'Abonnement', 'PayPal : encaisser et publier le profil',
+                'Après accord du payeur : capture du paiement, vérification de la référence, du montant et de la devise, puis publication du profil (comme une confirmation manuelle).',
+                parameters: [$this->uuid()],
+                body: ['$ref' => '#/components/schemas/PayPalCaptureInput'], security: $auth,
+                responses: [200 => ['Subscription', 'Paiement reçu, abonnement actif'], 402 => ['Error', 'Paiement non abouti'], 404 => ['Error', 'Commande PayPal inconnue'], 409 => ['Error', 'Paiement non conforme ou commande déjà traitée']],
+            )],
+            '/api/exchange-rates' => ['get' => $this->op(
+                'exchangeRates', 'Abonnement', 'Taux de change face au dollar US',
+                'Unités de chaque monnaie (FCFA et monnaies des pays africains) pour 1 $, mises à jour chaque jour ; taux de secours si le service est injoignable. Cache public 1 heure.',
+                responses: [200 => ['ExchangeRates', 'Taux du jour']],
+            )],
             '/api/pro/subscriptions/{id}/simulate-payment' => ['post' => $this->op(
                 'proSimulatePayment', 'Abonnement', 'Simuler le paiement (environnement dev uniquement)', 'Renvoie 404 hors environnement de développement.',
                 parameters: [$this->uuid()], security: $auth,
@@ -172,17 +190,22 @@ final class OpenApiFactory implements OpenApiFactoryInterface
                 parameters: [$this->uuid()], security: $auth,
                 responses: [200 => ['Subscription', 'Annulée'], 404 => ['Error', 'Introuvable ou déjà traitée']],
             )],
+            '/api/subregions' => ['get' => $this->op(
+                'subregions', 'Annuaire', 'Sous-régions africaines',
+                'Les 5 sous-régions (nord, ouest, centre, est, australe) et leurs pays, avec le nombre de régions et de praticiens publiés. Cache public 5 minutes.',
+                responses: [200 => ['SubregionList', 'Sous-régions et pays']],
+            )],
             '/api/countries/{code}/overview' => ['get' => $this->op(
                 'countryOverview', 'Annuaire', "Page d'accueil d'un pays",
                 'Régions (avec nombre de praticiens vérifiés et indicateur provisoire) et spécialités disponibles. Cache public 5 minutes.',
-                parameters: [new Parameter('code', 'path', 'Code ISO du pays', true, schema: ['type' => 'string', 'enum' => ['ML', 'BF', 'NE']], example: 'ML')],
+                parameters: [new Parameter('code', 'path', 'Code ISO du pays', true, schema: ['type' => 'string', 'pattern' => '^[A-Z]{2}$'], example: 'SN')],
                 responses: [200 => ['CountryOverview', 'Vue d\'ensemble'], 404 => ['Error', 'Pays inconnu']],
             )],
             '/api/search' => ['get' => $this->op(
                 'searchPractitioners', 'Annuaire', 'Rechercher des praticiens',
                 'Résultats paginés ; chaque praticien inclut sa grille de créneaux sur `days` jours et sa prochaine disponibilité.',
                 parameters: [
-                    $this->query('country', 'Code pays', ['type' => 'string', 'enum' => ['ML', 'BF', 'NE']], 'ML'),
+                    $this->query('country', 'Code ISO du pays (55 pays africains)', ['type' => 'string', 'pattern' => '^[A-Z]{2}$'], 'ML'),
                     $this->query('region', 'Slug de région', ['type' => 'string'], 'district-de-bamako'),
                     $this->query('city', 'Nom exact de la ville', ['type' => 'string'], 'Bamako'),
                     $this->query('specialty', 'Slug de spécialité', ['type' => 'string'], 'pediatrie'),
@@ -326,14 +349,15 @@ final class OpenApiFactory implements OpenApiFactoryInterface
         $ref = fn (string $name) => ['$ref' => '#/components/schemas/'.$name];
         $arr = fn (array $items) => ['type' => 'array', 'items' => $items];
         $obj = fn (array $props, array $required = []) => ['type' => 'object', 'properties' => $props] + ($required ? ['required' => $required] : []);
-        $countryCode = ['type' => 'string', 'enum' => ['ML', 'BF', 'NE'], 'example' => 'ML'];
+        $countryCode = ['type' => 'string', 'pattern' => '^[A-Z]{2}$', 'description' => 'Code ISO 3166-1 alpha-2 (55 pays africains)', 'example' => 'ML'];
+        $subregion = ['type' => 'string', 'enum' => ['north', 'west', 'central', 'east', 'southern']];
         $status = ['type' => 'string', 'enum' => ['pending', 'confirmed', 'cancelled', 'honored', 'no_show']];
 
         return [
             'Error' => $obj(['error' => $str + ['example' => 'Ce créneau n\'est plus disponible.'], 'code' => $str + ['example' => 'consent_required']], ['error']),
             'Ok' => $obj(['ok' => $bool]),
             'OtpRequest' => $obj([
-                'phone' => $str + ['example' => '70 00 00 01', 'description' => 'SMS : 8 chiffres (avec country) ou format international +223…'],
+                'phone' => $str + ['example' => '70 00 00 01', 'description' => 'SMS : numéro national (avec country) ou format international (+223…, +234…)'],
                 'country' => $countryCode + ['description' => 'Pays pour compléter l\'indicatif'],
                 'email' => $str + ['format' => 'email', 'example' => 'awa.traore@gmail.com', 'description' => 'Email : à la place de phone'],
             ]),
@@ -361,17 +385,27 @@ final class OpenApiFactory implements OpenApiFactoryInterface
                 'plan' => $obj(['code' => $str, 'name' => $str, 'durationMonths' => $int]),
                 'amount' => $int + ['example' => 10000], 'currency' => $str + ['example' => 'XOF'],
                 'status' => ['type' => 'string', 'enum' => ['pending', 'paid', 'cancelled']],
-                'paymentMethod' => $str, 'paymentMethodLabel' => $str, 'transactionId' => $strNull,
+                'paymentMethod' => $str + ['example' => 'orange_money'], 'paymentMethodLabel' => $str, 'transactionId' => $strNull,
+                'amountUsd' => ['type' => ['number', 'null'], 'description' => 'Montant facturé en dollars (paiement PayPal)', 'example' => 17.1],
                 'startsAt' => $strNull + ['format' => 'date-time'], 'endsAt' => $strNull + ['format' => 'date-time'],
                 'createdAt' => $str + ['format' => 'date-time'], 'paidAt' => $strNull + ['format' => 'date-time'],
                 'practitioner' => $obj(['id' => $int, 'slug' => $str, 'fullName' => $str, 'phone' => $strNull, 'city' => $strNull, 'country' => $strNull, 'publishedUntil' => $strNull]) + ['description' => 'Administration uniquement'],
+            ]),
+            'PayPalOrder' => $obj(['orderId' => $str, 'amountUsd' => ['type' => 'number', 'example' => 17.1]]),
+            'PayPalCaptureInput' => $obj(['orderId' => $str + ['description' => 'Identifiant renvoyé par /paypal (data.orderID du bouton PayPal)']], ['orderId']),
+            'ExchangeRates' => $obj([
+                'base' => $str + ['example' => 'USD'],
+                'rates' => ['type' => 'object', 'additionalProperties' => ['type' => 'number'], 'example' => ['XOF' => 585.4, 'KES' => 129.7]],
+                'updatedAt' => $strNull + ['format' => 'date-time'],
+                'source' => $str + ['example' => 'open.er-api.com'],
             ]),
             'SubscriptionStatus' => $obj([
                 'verified' => $bool, 'published' => $bool, 'activeSubscription' => $bool,
                 'publishedUntil' => $strNull + ['format' => 'date-time'], 'daysLeft' => $int,
                 'plans' => $arr($obj(['code' => $str, 'name' => $str, 'durationMonths' => $int, 'price' => $int, 'monthlyPrice' => $int, 'currency' => $str])),
-                'methods' => $arr($obj(['code' => $str, 'label' => $str])),
-                'paymentAccount' => ['type' => 'object', 'additionalProperties' => $str, 'description' => 'Titulaire et numéros marchands du pays'],
+                'methods' => $arr($obj(['code' => $str, 'label' => $str])) + ['description' => 'Moyens de paiement proposés dans le pays du praticien'],
+                'paymentAccount' => ['type' => 'object', 'additionalProperties' => $strNull, 'description' => 'Titulaire ("holder") et numéro de réception par moyen ; null : coordonnées envoyées par SMS par l\'équipe AlloDoc'],
+                'paypal' => ['type' => ['object', 'null'], 'properties' => ['clientId' => $str, 'currency' => $str + ['example' => 'USD']], 'description' => 'null si PayPal n\'est pas configuré'],
                 'pending' => ['oneOf' => [['type' => 'null'], $ref('Subscription')]],
                 'history' => $arr($ref('Subscription')),
                 'canSimulatePayment' => $bool,
@@ -414,11 +448,17 @@ final class OpenApiFactory implements OpenApiFactoryInterface
             ])]],
             'SearchResult' => $obj(['total' => $int, 'page' => $int, 'perPage' => $int, 'pages' => $int, 'items' => $arr($ref('SearchItem'))]),
             'CountryOverview' => $obj([
-                'country' => $obj(['code' => $countryCode, 'name' => $str, 'capital' => $str, 'timezone' => $str, 'phonePrefix' => $str, 'languages' => $arr($str)]),
+                'country' => $obj(['code' => $countryCode, 'name' => $str, 'capital' => $str, 'timezone' => $str, 'phonePrefix' => $str, 'currency' => $str, 'subregion' => $subregion, 'languages' => $arr($str)]),
                 'practitionerCount' => $int,
                 'regions' => $arr($obj(['id' => $int, 'slug' => $str, 'name' => $str, 'capital' => $str, 'formerName' => $strNull, 'provisional' => $bool, 'practitionerCount' => $int])),
                 'specialties' => $arr($obj(['slug' => $str, 'name' => $str, 'icon' => $str, 'practitionerCount' => $int])),
             ]),
+            'SubregionList' => $arr($obj([
+                'code' => $subregion,
+                'name' => $str,
+                'practitionerCount' => $int,
+                'countries' => $arr($obj(['code' => $countryCode, 'name' => $str, 'capital' => $str, 'regionCount' => $int, 'practitionerCount' => $int])),
+            ])),
             'BookingInput' => $obj([
                 'practitioner' => $str + ['description' => 'Slug du praticien', 'example' => 'boubacar-coulibaly'],
                 'startsAt' => $str + ['format' => 'date-time', 'description' => 'Valeur `start` d\'un créneau'],

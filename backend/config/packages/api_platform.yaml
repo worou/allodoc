@@ -1,6 +1,6 @@
 api_platform:
     title: AlloDoc API
-    description: "Prise de rendez-vous medicaux - Mali, Burkina Faso, Niger"
+    description: "Prise de rendez-vous medicaux dans toute l'Afrique (55 pays, 5 sous-regions)"
     version: 1.0.0
     formats:
         jsonld: ['application/ld+json']

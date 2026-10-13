@@ -1,6 +1,6 @@
 import { initials } from "../lib/format";
 
-const TONES = ["#1c1f57", "#c2502a", "#1d7a4c", "#8a5d00", "#5b2a6e", "#a03f1f"];
+const TONES = ["#113526", "#c23b20", "#1e8449", "#8a5d00", "#1f6fae", "#7b4aa0"];
 
 /** Avatar à initiales sur motif bogolan : pas de photo à télécharger, la page reste légère. */
 export function Avatar({ firstName, lastName, photoUrl, size = 64 }: { firstName: string; lastName: string; photoUrl?: string | null; size?: number }) {

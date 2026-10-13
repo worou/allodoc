@@ -5,6 +5,7 @@ namespace App\Entity;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
+use App\Enum\Subregion;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
@@ -28,7 +29,7 @@ class Country
     #[ApiProperty(identifier: false)]
     private ?int $id = null;
 
-    /** Code ISO 3166-1 alpha-2 (ML, BF, NE), sert d'identifiant dans l'API. */
+    /** Code ISO 3166-1 alpha-2 (ML, SN, KE...), sert d'identifiant dans l'API. */
     #[ORM\Column(length: 2, unique: true)]
     #[Groups(['country:read', 'region:read'])]
     #[ApiProperty(identifier: true)]
@@ -42,7 +43,12 @@ class Country
     #[Groups(['country:read'])]
     private string $capital;
 
-    /** Fuseau IANA : Africa/Bamako, Africa/Ouagadougou, Africa/Niamey. */
+    /** Sous-région africaine (nord, ouest, centre, est, australe). */
+    #[ORM\Column(length: 10, enumType: Subregion::class, options: ['default' => 'west'])]
+    #[Groups(['country:read'])]
+    private Subregion $subregion = Subregion::West;
+
+    /** Fuseau IANA : Africa/Bamako, Africa/Nairobi... */
     #[ORM\Column(length: 40)]
     #[Groups(['country:read'])]
     private string $timezone;
@@ -50,6 +56,11 @@ class Country
     #[ORM\Column(length: 6)]
     #[Groups(['country:read'])]
     private string $phonePrefix;
+
+    /** Longueurs possibles du numéro national, sans l'indicatif ni le 0 initial. */
+    #[ORM\Column(type: 'json')]
+    #[Groups(['country:read'])]
+    private array $phoneLengths = [8];
 
     #[ORM\Column(length: 3)]
     #[Groups(['country:read'])]
@@ -89,6 +100,19 @@ class Country
     public function getTimezone(): string { return $this->timezone; }
     public function getPhonePrefix(): string { return $this->phonePrefix; }
     public function getCurrency(): string { return $this->currency; }
+    public function setCurrency(string $currency): static { $this->currency = $currency; return $this; }
+    public function getSubregion(): Subregion { return $this->subregion; }
+    public function setSubregion(Subregion $subregion): static { $this->subregion = $subregion; return $this; }
+    /** @return int[] */
+    public function getPhoneLengths(): array { return $this->phoneLengths; }
+    public function setPhoneLengths(array $lengths): static { $this->phoneLengths = $lengths; return $this; }
+    /** Mise à jour depuis le référentiel. */
+    public function updateReference(string $name, string $capital, string $timezone, string $phonePrefix): static
+    {
+        [$this->name, $this->capital, $this->timezone, $this->phonePrefix] = [$name, $capital, $timezone, $phonePrefix];
+
+        return $this;
+    }
     public function getLanguages(): array { return $this->languages; }
     public function setLanguages(array $languages): static { $this->languages = $languages; return $this; }
     public function isActive(): bool { return $this->active; }

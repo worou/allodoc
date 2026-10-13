@@ -2,6 +2,7 @@ import { Link } from "react-router";
 import { useState } from "react";
 import { api } from "../lib/api";
 import { dayMonth, dayShort, hour, relativeDay } from "../lib/format";
+import { useI18n } from "../lib/i18n";
 import type { SlotDay } from "../lib/types";
 import { Icon } from "./Icon";
 
@@ -20,6 +21,7 @@ const VISIBLE_ROWS = 4;
 
 /** Grille de créneaux par jour, façon agenda : navigation par semaine et dépliage des horaires. */
 export function SlotGrid({ slug, initialDays, next, columns = 5, reschedule, today }: Props) {
+  const { t } = useI18n();
   const [days, setDays] = useState(initialDays);
   const [expanded, setExpanded] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -58,20 +60,20 @@ export function SlotGrid({ slug, initialDays, next, columns = 5, reschedule, tod
   return (
     <div aria-busy={loading} style={{ opacity: loading ? 0.6 : 1 }}>
       <div className="slot-grid" style={{ "--cols": columns } as React.CSSProperties}>
-        <button type="button" className="slot-nav" onClick={() => shift(-columns)} disabled={first <= today || loading} aria-label="Jours précédents">
+        <button type="button" className="slot-nav" onClick={() => shift(-columns)} disabled={first <= today || loading} aria-label={t("slots.previous")}>
           <Icon name="chevronLeft" size={16} />
         </button>
         {visible.map((day) => (
           <div className="slot-col" key={day.date}>
             <div className="slot-day">
-              <b>{day.date === today ? "Auj." : dayShort(day.date)}</b>
+              <b>{day.date === today ? t("date.todayShort") : dayShort(day.date)}</b>
               <span>{dayMonth(day.date)}</span>
             </div>
             {!isEmpty &&
               Array.from({ length: rows }, (_, i) => {
                 const slot = day.slots[i];
                 return slot ? (
-                  <Link key={slot.start} to={href(slot.start)} className="slot" aria-label={`Réserver le ${dayShort(day.date)} ${dayMonth(day.date)} à ${hour(slot.time)}`}>
+                  <Link key={slot.start} to={href(slot.start)} className="slot" aria-label={t("slots.bookAt", { date: `${dayShort(day.date)} ${dayMonth(day.date)}`, time: hour(slot.time) })}>
                     {slot.time}
                   </Link>
                 ) : (
@@ -82,26 +84,26 @@ export function SlotGrid({ slug, initialDays, next, columns = 5, reschedule, tod
               })}
           </div>
         ))}
-        <button type="button" className="slot-nav" onClick={() => shift(columns)} disabled={loading} aria-label="Jours suivants">
+        <button type="button" className="slot-nav" onClick={() => shift(columns)} disabled={loading} aria-label={t("slots.next")}>
           <Icon name="chevronRight" size={16} />
         </button>
       </div>
 
-      {error && <p className="alert alert-error small" style={{ marginTop: 10 }}>Connexion instable : impossible de charger les horaires. Réessayez.</p>}
+      {error && <p className="alert alert-error small" style={{ marginTop: 10 }}>{t("slots.loadError")}</p>}
 
       {isEmpty && (
         <div className="slot-next">
           {next && next.date > (visible[visible.length - 1]?.date ?? today) ? (
             <>
               <span>
-                Prochain rendez-vous <b>{relativeDay(next.date, today)}</b>
+                {t("slots.nextAppointment")} <b>{relativeDay(next.date, today)}</b>
               </span>
               <button type="button" className="btn btn-sm btn-indigo" onClick={() => load(next.date)}>
-                Voir les horaires
+                {t("slots.seeTimes")}
               </button>
             </>
           ) : (
-            <span className="muted">Aucune disponibilité en ligne sur cette période.</span>
+            <span className="muted">{t("slots.none")}</span>
           )}
         </div>
       )}
@@ -109,7 +111,7 @@ export function SlotGrid({ slug, initialDays, next, columns = 5, reschedule, tod
       {!isEmpty && maxRows > VISIBLE_ROWS && (
         <div className="slot-more">
           <button type="button" className="btn btn-sm btn-ghost" onClick={() => setExpanded((v) => !v)}>
-            {expanded ? "Voir moins d'horaires" : "Voir plus d'horaires"}
+            {expanded ? t("slots.less") : t("slots.more")}
             <Icon name="chevronDown" size={16} className={expanded ? "rot" : undefined} />
           </button>
         </div>

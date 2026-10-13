@@ -50,6 +50,17 @@ final class PractitionerSearch
         return array_column($rows, 'total', 'slug');
     }
 
+    /** @return array<string, int> code pays => nombre de praticiens publiés */
+    public function countByCountry(): array
+    {
+        $rows = $this->baseQuery([])
+            ->select('co.code AS code', 'COUNT(DISTINCT p.id) AS total')
+            ->groupBy('co.code')
+            ->getQuery()->getArrayResult();
+
+        return array_column($rows, 'total', 'code');
+    }
+
     /** @return array<string, int> slug de spécialité => nombre */
     public function countBySpecialty(string $countryCode): array
     {

@@ -1,13 +1,19 @@
 import { useEffect, useState } from "react";
 import { isNativeApp } from "../lib/install";
-import { api, API_URL, ApiError, COUNTRY_NAMES } from "../lib/api";
+import { api, API_URL, ApiError, countryName } from "../lib/api";
+import { SUBREGIONS, subregionName } from "../lib/africa";
+import { useCountries } from "../lib/hooks";
+import { translate, useI18n } from "../lib/i18n";
 import type { CountryCode, User } from "../lib/types";
 import { useAuth } from "./AuthProvider";
 import { Flag } from "./Flag";
 import { useRememberedCountry } from "./Header";
 import { Icon } from "./Icon";
 
-export const PHONE_PREFIX: Record<CountryCode, string> = { ML: "+223", BF: "+226", NE: "+227" };
+/** Placeholder : numéro national fictif à la bonne longueur ("70 12 34 56" au Mali, "803 123 4567" au Nigeria). */
+function phonePlaceholder(length: number) {
+  return "7012345678901".slice(0, length).replace(/(\d{2})(?=\d)/g, "$1 ");
+}
 
 interface Provider {
   id: "google" | "github";
@@ -68,6 +74,7 @@ function OAuthButtonList({ next }: { next: string }) {
     { id: "github", name: "GitHub", configured: true },
   ]);
   const [notice, setNotice] = useState<string | null>(null);
+  const { t } = useI18n();
 
   useEffect(() => {
     api<Provider[]>("/api/auth/oauth/providers", { auth: false }).then(setProviders).catch(() => {});
@@ -82,14 +89,14 @@ function OAuthButtonList({ next }: { next: string }) {
           className={`btn btn-block btn-social btn-${p.id}`}
           onClick={() => {
             if (!p.configured) {
-              setNotice(`La connexion ${p.name} n'est pas encore activée sur ce serveur. Utilisez le SMS ou l'email.`);
+              setNotice(t("otp.providerDisabled", { provider: p.name }));
               return;
             }
             window.location.href = `${API_URL}/api/auth/oauth/${p.id}?next=${encodeURIComponent(next)}&nonce=${newNonce()}`;
           }}
         >
           {p.id === "google" ? <GoogleLogo /> : <GithubLogo />}
-          Continuer avec {p.name}
+          {t("otp.continueWith", { provider: p.name })}
         </button>
       ))}
       {notice && <p className="alert alert-warn small">{notice}</p>}
@@ -99,19 +106,29 @@ function OAuthButtonList({ next }: { next: string }) {
 
 /** Saisie d'un numéro avec indicatif pays. */
 export function PhoneField({ country, setCountry, phone, setPhone }: { country: CountryCode; setCountry: (c: CountryCode) => void; phone: string; setPhone: (p: string) => void }) {
+  const { t } = useI18n();
+  const countries = useCountries();
+  const current = countries.find((c) => c.code === country);
   return (
     <div className="phone-input">
       <label className="prefix">
         <Flag code={country} width={22} />
-        <select aria-label="Pays" value={country} onChange={(e) => setCountry(e.target.value as CountryCode)} style={{ border: 0, background: "transparent", fontWeight: 700 }}>
-          {(Object.keys(PHONE_PREFIX) as CountryCode[]).map((c) => (
-            <option key={c} value={c}>
-              {PHONE_PREFIX[c]} {COUNTRY_NAMES[c]}
-            </option>
+        <select aria-label={t("otp.country")} value={country} onChange={(e) => setCountry(e.target.value as CountryCode)} style={{ border: 0, background: "transparent", fontWeight: 700 }}>
+          {!current && <option value={country}>{countryName(country)}</option>}
+          {SUBREGIONS.map((s) => (
+            <optgroup key={s.code} label={subregionName(s.code)}>
+              {countries
+                .filter((c) => c.subregion === s.code)
+                .map((c) => (
+                  <option key={c.code} value={c.code}>
+                    {c.phonePrefix} {countryName(c.code)}
+                  </option>
+                ))}
+            </optgroup>
           ))}
         </select>
       </label>
-      <input id="phone" className="input" type="tel" inputMode="tel" autoComplete="tel-national" placeholder="70 12 34 56" value={phone} onChange={(e) => setPhone(e.target.value)} required />
+      <input id="phone" className="input" type="tel" dir="ltr" inputMode="tel" autoComplete="tel-national" placeholder={phonePlaceholder(current?.phoneLengths[0] ?? 8)} value={phone} onChange={(e) => setPhone(e.target.value)} required />
     </div>
   );
 }
@@ -119,6 +136,7 @@ export function PhoneField({ country, setCountry, phone, setPhone }: { country: 
 /** Étape "code reçu" commune au SMS et à l'email. */
 function CodeStep({ sent, busy, error, onSubmit, onBack, onResend }: { sent: Sent; busy: boolean; error: string | null; onSubmit: (code: string) => void; onBack: () => void; onResend: () => void }) {
   const [code, setCode] = useState("");
+  const { t } = useI18n();
   const isEmail = "email" in sent.destination;
   return (
     <form
@@ -128,32 +146,32 @@ function CodeStep({ sent, busy, error, onSubmit, onBack, onResend }: { sent: Sen
         onSubmit(code);
       }}
     >
-      <h2>Entrez le code reçu</h2>
+      <h2>{t("otp.enterCode")}</h2>
       <p className="muted">
-        Un code à 6 chiffres a été envoyé {isEmail ? "par email à" : "par SMS au"} <b>{sent.masked}</b>.
-        {isEmail && " Pensez à vérifier vos courriers indésirables."}
+        {isEmail ? t("otp.sentByEmail") : t("otp.sentBySms")} <b dir="ltr">{sent.masked}</b>.
+        {isEmail && ` ${t("otp.checkSpam")}`}
       </p>
       {sent.devCode && (
         <p className="alert alert-info small">
-          <Icon name="info" size={18} /> Mode démonstration : le code est <b>{sent.devCode}</b> (aucun {isEmail ? "email" : "SMS"} réel n&apos;est envoyé).
+          <Icon name="info" size={18} /> {t("otp.demoCode")} <b>{sent.devCode}</b> ({isEmail ? t("otp.demoNoEmail") : t("otp.demoNoSms")})
         </p>
       )}
       <div>
         <label className="field-label" htmlFor="otp">
-          Code de vérification
+          {t("otp.codeLabel")}
         </label>
         <input id="otp" className="input otp-input" inputMode="numeric" autoComplete="one-time-code" maxLength={6} value={code} onChange={(e) => setCode(e.target.value.replace(/\D/g, ""))} autoFocus />
       </div>
       {error && <p className="alert alert-error">{error}</p>}
       <button className="btn btn-primary btn-block" disabled={busy || code.length !== 6}>
-        {busy ? "Vérification…" : "Valider"}
+        {busy ? t("otp.verifying") : t("otp.validate")}
       </button>
       <div className="row" style={{ justifyContent: "space-between" }}>
         <button type="button" className="btn btn-ghost btn-sm" onClick={onBack}>
-          {isEmail ? "Changer d'adresse" : "Changer de numéro"}
+          {isEmail ? t("otp.changeEmail") : t("otp.changeNumber")}
         </button>
         <button type="button" className="btn btn-ghost btn-sm" onClick={onResend} disabled={busy}>
-          Renvoyer le code
+          {t("otp.resend")}
         </button>
       </div>
     </form>
@@ -171,7 +189,7 @@ function useCodeFlow() {
     try {
       return await fn();
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Connexion impossible. Vérifiez votre réseau.");
+      setError(err instanceof ApiError ? err.message : translate("error.network"));
       return undefined;
     } finally {
       setBusy(false);
@@ -192,8 +210,9 @@ function useCodeFlow() {
  * Connexion / inscription sans mot de passe : Google, GitHub, code par SMS ou code par email.
  * `next` = page où revenir après une connexion Google / GitHub (qui quitte l'application le temps de l'autorisation).
  */
-export function OtpLogin({ onDone, title = "Connexion ou inscription", next = "/compte" }: { onDone?: (user: User) => void; title?: string; next?: string }) {
+export function OtpLogin({ onDone, title, next = "/compte" }: { onDone?: (user: User) => void; title?: string; next?: string }) {
   const { login } = useAuth();
+  const { t } = useI18n();
   const remembered = useRememberedCountry();
   const [mode, setMode] = useState<"sms" | "email">("sms");
   const [country, setCountry] = useState<CountryCode | null>(null);
@@ -225,46 +244,46 @@ export function OtpLogin({ onDone, title = "Connexion ou inscription", next = "/
         flow.request(mode === "email" ? { email } : { phone, country: effectiveCountry });
       }}
     >
-      <h2>{title}</h2>
-      <p className="muted">Pas de mot de passe : connectez-vous avec un compte existant ou recevez un code.</p>
+      <h2>{title ?? t("otp.title")}</h2>
+      <p className="muted">{t("otp.intro")}</p>
 
       <OAuthButtons next={next} />
 
       <div className="divider">
-        <span>ou recevoir un code</span>
+        <span>{t("otp.orReceiveCode")}</span>
       </div>
 
-      <div className="segmented" role="tablist" aria-label="Mode de connexion">
+      <div className="segmented" role="tablist" aria-label={t("otp.mode")}>
         <button type="button" role="tab" aria-selected={mode === "sms"} onClick={() => setMode("sms")}>
-          <Icon name="phone" size={16} /> Par SMS
+          <Icon name="phone" size={16} /> {t("otp.bySms")}
         </button>
         <button type="button" role="tab" aria-selected={mode === "email"} onClick={() => setMode("email")}>
-          <Icon name="mail" size={16} /> Par email
+          <Icon name="mail" size={16} /> {t("otp.byEmail")}
         </button>
       </div>
 
       {mode === "sms" ? (
         <div>
           <label className="field-label" htmlFor="phone">
-            Numéro de téléphone
+            {t("otp.phoneNumber")}
           </label>
           <PhoneField country={effectiveCountry} setCountry={setCountry} phone={phone} setPhone={setPhone} />
         </div>
       ) : (
         <div>
           <label className="field-label" htmlFor="email">
-            Adresse email
+            {t("otp.emailAddress")}
           </label>
-          <input id="email" className="input" type="email" inputMode="email" autoComplete="email" placeholder="prenom.nom@gmail.com" value={email} onChange={(e) => setEmail(e.target.value)} required />
+          <input id="email" className="input" type="email" inputMode="email" autoComplete="email" placeholder={t("otp.emailPlaceholder")} dir="ltr" value={email} onChange={(e) => setEmail(e.target.value)} required />
         </div>
       )}
 
       {flow.error && <p className="alert alert-error">{flow.error}</p>}
-      <button className="btn btn-primary btn-block" disabled={flow.busy || (mode === "sms" ? phone.replace(/\D/g, "").length < 8 : !email.includes("@"))}>
-        {flow.busy ? "Envoi…" : "Recevoir mon code"}
+      <button className="btn btn-primary btn-block" disabled={flow.busy || (mode === "sms" ? phone.replace(/\D/g, "").length < 7 : !email.includes("@"))}>
+        {flow.busy ? t("common.sending") : t("otp.receiveCode")}
       </button>
       <p className="muted small">
-        Première visite ? Votre compte est créé automatiquement. Votre numéro sert à la connexion et aux rappels de rendez-vous.
+        {t("otp.firstVisit")}
       </p>
     </form>
   );
@@ -276,6 +295,7 @@ export function OtpLogin({ onDone, title = "Connexion ou inscription", next = "/
  */
 export function PhoneVerify({ onDone, intro }: { onDone: (user: User) => void; intro?: string }) {
   const remembered = useRememberedCountry();
+  const { t } = useI18n();
   const [country, setCountry] = useState<CountryCode | null>(null);
   const [phone, setPhone] = useState("");
   const flow = useCodeFlow();
@@ -296,8 +316,8 @@ export function PhoneVerify({ onDone, intro }: { onDone: (user: User) => void; i
       {intro && <p className="muted">{intro}</p>}
       <PhoneField country={effectiveCountry} setCountry={setCountry} phone={phone} setPhone={setPhone} />
       {flow.error && <p className="alert alert-error">{flow.error}</p>}
-      <button type="button" className="btn btn-indigo" disabled={flow.busy || phone.replace(/\D/g, "").length < 8} onClick={() => flow.request({ phone, country: effectiveCountry })}>
-        {flow.busy ? "Envoi…" : "Vérifier ce numéro par SMS"}
+      <button type="button" className="btn btn-indigo" disabled={flow.busy || phone.replace(/\D/g, "").length < 7} onClick={() => flow.request({ phone, country: effectiveCountry })}>
+        {flow.busy ? t("common.sending") : t("otp.verifyPhone")}
       </button>
     </div>
   );
@@ -309,6 +329,7 @@ export function PhoneVerify({ onDone, intro }: { onDone: (user: User) => void; i
  */
 export function EmailVerify({ onDone, initial = "" }: { onDone: (user: User) => void; initial?: string }) {
   const [email, setEmail] = useState(initial);
+  const { t } = useI18n();
   const flow = useCodeFlow();
 
   async function verify(code: string) {
@@ -323,10 +344,10 @@ export function EmailVerify({ onDone, initial = "" }: { onDone: (user: User) => 
 
   return (
     <div className="stack">
-      <input className="input" type="email" autoComplete="email" placeholder="prenom.nom@gmail.com" aria-label="Adresse email" value={email} onChange={(e) => setEmail(e.target.value)} />
+      <input className="input" type="email" autoComplete="email" placeholder={t("otp.emailPlaceholder")} dir="ltr" aria-label={t("otp.emailAddress")} value={email} onChange={(e) => setEmail(e.target.value)} />
       {flow.error && <p className="alert alert-error">{flow.error}</p>}
       <button type="button" className="btn btn-indigo" disabled={flow.busy || !email.includes("@")} onClick={() => flow.request({ email })}>
-        {flow.busy ? "Envoi…" : "Vérifier cette adresse"}
+        {flow.busy ? t("common.sending") : t("otp.verifyEmail")}
       </button>
     </div>
   );

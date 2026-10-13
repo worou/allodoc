@@ -1,17 +1,19 @@
 import { Link } from "react-router";
 import { Icon } from "../components/Icon";
 import { useTitle } from "../lib/hooks";
+import { useI18n } from "../lib/i18n";
 
 export default function NotFound() {
-  useTitle("Page introuvable");
+  const { t } = useI18n();
+  useTitle(t("notFound.title"));
   return (
     <div className="funnel">
       <div className="card empty">
         <Icon name="pin" size={44} />
-        <h1 style={{ fontSize: 26, margin: "8px 0" }}>Page introuvable</h1>
-        <p className="muted">Cette adresse n&apos;existe pas ou plus.</p>
+        <h1 style={{ fontSize: 26, margin: "8px 0" }}>{t("notFound.title")}</h1>
+        <p className="muted">{t("notFound.text")}</p>
         <Link to="/" className="btn btn-primary" style={{ marginTop: 16 }}>
-          Retour à l&apos;accueil
+          {t("common.backHome")}
         </Link>
       </div>
     </div>

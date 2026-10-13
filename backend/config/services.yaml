@@ -7,19 +7,29 @@
 # Put parameters here that don't need to change on each machine where the app is deployed
 # https://symfony.com/doc/current/best_practices.html#use-parameters-for-application-configuration
 parameters:
-    # Comptes où les praticiens paient leur abonnement, par pays. Chaque clé (mobile_money, orange_money,
-    # moov_money, wave, airtel_money) affiche ce moyen de paiement avec son numéro ; "cash" est toujours proposé.
-    # Numéro de réception unique communiqué par AlloDoc (Bénin, +229) pour les trois pays.
+    # Coordonnées de réception des abonnements praticiens. Les moyens proposés dans chaque pays sont listés dans
+    # config/reference/africa.json ("payments"). Recherche du numéro pour un pays et un moyen donnés :
+    #   1. <PAYS>.<moyen>          ex. SN.wave: '+221 77 000 00 00'
+    #   2. <PAYS>.mobile_money     numéro unique du pays pour tous ses opérateurs mobile money
+    #   3. default.<moyen>, puis default.mobile_money (opérateurs mobile money uniquement)
+    # Sans numéro trouvé (virement bancaire non renseigné…), l'équipe AlloDoc communique les coordonnées au praticien.
+    # PayPal n'a pas de numéro : il est proposé dès que PAYPAL_CLIENT_ID et PAYPAL_CLIENT_SECRET sont renseignés.
     app.payment_accounts:
-        ML:
+        default:
             holder: 'AlloDoc'
+            # Numéro de réception communiqué par AlloDoc (Bénin, +229), pour tous les opérateurs de tous les pays.
             mobile_money: '+229 90 28 53 86'
-        BF:
-            holder: 'AlloDoc'
-            mobile_money: '+229 90 28 53 86'
-        NE:
-            holder: 'AlloDoc'
-            mobile_money: '+229 90 28 53 86'
+        # Exemple de numéros propres à un pays :
+        # SN:
+        #     wave: '+221 ...'
+        #     orange_money: '+221 ...'
+        #     bank_transfer: 'IBAN SN... (Banque ...)'
+
+    # Taux de secours (unités de monnaie pour 1 dollar US) si le service de taux de change est injoignable.
+    # Le franc CFA est arrimé à l'euro (655,957 FCFA = 1 €) : ce taux suit donc l'euro face au dollar.
+    app.usd_fallback_rates:
+        XOF: 585
+        XAF: 585
 
 services:
     # default configuration for services in *this* file

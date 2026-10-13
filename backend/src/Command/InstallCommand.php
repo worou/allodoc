@@ -40,9 +40,12 @@ final class InstallCommand extends Command
         if (0 === $this->em->getRepository(Country::class)->count([])) {
             ReferenceLoader::load($this->em);
             $this->em->flush();
-            $io->success('Référentiels chargés : 3 pays, 45 régions, 18 spécialités, 2 formules d\'abonnement.');
+            $io->success('Référentiels chargés : 55 pays en 5 sous-régions, leurs régions, 18 spécialités, 2 formules d\'abonnement.');
         } else {
-            $io->note('Référentiels déjà présents : inchangés.');
+            // Base existante : ajoute les pays, régions et chefs-lieux manquants, sans rien supprimer.
+            $created = ReferenceLoader::sync($this->em);
+            $this->em->flush();
+            $io->success(sprintf('Référentiel géographique à jour : %d pays, %d régions et %d villes ajoutés.', $created['countries'], $created['regions'], $created['cities']));
         }
 
         $email = $input->getOption('admin-email');

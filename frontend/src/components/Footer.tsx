@@ -1,7 +1,10 @@
 import { Link } from "react-router";
+import { SUBREGIONS, subregionName, subregionPath } from "../lib/africa";
+import { useI18n } from "../lib/i18n";
 import { LogoMark } from "./Logo";
 
 export function Footer() {
+  const { t } = useI18n();
   return (
     <footer className="site-footer">
       <div className="kente-band" />
@@ -13,36 +16,36 @@ export function Footer() {
               Allo<b>Doc</b>
             </span>
           </div>
-          <p className="small">Votre rendez-vous médical au Mali, au Burkina Faso et au Niger, en quelques secondes.</p>
+          <p className="small">{t("footer.tagline")}</p>
         </div>
         <div>
-          <h4>Pays</h4>
+          <h4>{t("footer.countries")}</h4>
           <ul>
-            <li><Link to="/ml">Mali</Link></li>
-            <li><Link to="/bf">Burkina Faso</Link></li>
-            <li><Link to="/ne">Niger</Link></li>
+            {SUBREGIONS.map((s) => (
+              <li key={s.code}>
+                <Link to={subregionPath(s.code)}>{subregionName(s.code)}</Link>
+              </li>
+            ))}
           </ul>
         </div>
         <div>
-          <h4>Patients</h4>
+          <h4>{t("footer.patients")}</h4>
           <ul>
-            <li><Link to="/recherche">Trouver un praticien</Link></li>
-            <li><Link to="/compte">Mes rendez-vous</Link></li>
-            <li><Link to="/connexion">Se connecter</Link></li>
-            <li><Link to="/application">Application mobile</Link></li>
+            <li><Link to="/recherche">{t("common.findPractitioner")}</Link></li>
+            <li><Link to="/compte">{t("footer.myAppointments")}</Link></li>
+            <li><Link to="/connexion">{t("nav.login")}</Link></li>
+            <li><Link to="/application">{t("footer.mobileApp")}</Link></li>
           </ul>
         </div>
         <div>
-          <h4>Professionnels</h4>
+          <h4>{t("footer.professionals")}</h4>
           <ul>
-            <li><Link to="/pro">Espace praticien</Link></li>
-            <li><Link to="/admin">Administration</Link></li>
+            <li><Link to="/pro">{t("footer.practitionerArea")}</Link></li>
+            <li><Link to="/admin">{t("header.admin")}</Link></li>
           </ul>
         </div>
       </div>
-      <div className="footer-legal">
-        Données de santé protégées : chiffrement, journal d&apos;audit, aucune information médicale dans les SMS. Démonstration : praticiens et structures fictifs.
-      </div>
+      <div className="footer-legal">{t("footer.legal")}</div>
     </footer>
   );
 }

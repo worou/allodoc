@@ -7,6 +7,9 @@ use App\Entity\Subscription;
 use App\Entity\SubscriptionPlan;
 use App\Entity\User;
 use App\Enum\SubscriptionStatus;
+use App\Payment\ExchangeRates;
+use App\Payment\PayPalClient;
+use App\Reference\ReferenceLoader;
 use App\Service\BookingException;
 use App\Service\SubscriptionService;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
@@ -24,7 +27,7 @@ final class SubscriptionController extends ApiController
     /** État de l'abonnement, formules disponibles, commande en attente avec instructions de paiement, historique. */
     #[Route('/api/pro/subscription', methods: ['GET'])]
     #[IsGranted('ROLE_PRACTITIONER')]
-    public function status(SubscriptionService $subscriptions, #[Autowire('%kernel.environment%')] string $env): JsonResponse
+    public function status(SubscriptionService $subscriptions, PayPalClient $paypal, #[Autowire('%kernel.environment%')] string $env): JsonResponse
     {
         $practitioner = $this->practitioner();
         if (null === $practitioner) {
@@ -49,8 +52,10 @@ final class SubscriptionController extends ApiController
                 'monthlyPrice' => $p->getMonthlyPrice(),
                 'currency' => $p->getCurrency(),
             ], $plans),
-            'methods' => array_map(fn ($code, $label) => ['code' => $code, 'label' => $label], array_keys(Subscription::METHODS), Subscription::METHODS),
+            // Moyens de paiement du pays du praticien, dans l'ordre du référentiel.
+            'methods' => array_map(fn (string $code) => ['code' => $code, 'label' => Subscription::METHODS[$code]], $subscriptions->paymentMethods($practitioner)),
             'paymentAccount' => $subscriptions->paymentAccount($practitioner),
+            'paypal' => $paypal->isConfigured() ? ['clientId' => $paypal->clientId(), 'currency' => 'USD'] : null,
             'pending' => $pending ? $subscriptions->present($pending) : null,
             'history' => array_map(fn (Subscription $s) => $subscriptions->present($s), $subscriptions->history($practitioner)),
             'canSimulatePayment' => 'dev' === $env,
@@ -94,6 +99,62 @@ final class SubscriptionController extends ApiController
         $this->em->flush();
 
         return $this->json($subscriptions->present($subscription));
+    }
+
+    /** PayPal, étape 1 : crée la commande PayPal (en dollars) d'une commande en attente réglée par PayPal. */
+    #[Route('/api/pro/subscriptions/{id}/paypal', methods: ['POST'])]
+    #[IsGranted('ROLE_PRACTITIONER')]
+    public function paypalStart(string $id, SubscriptionService $subscriptions): JsonResponse
+    {
+        $subscription = $this->find($id);
+        if (null === $subscription || $subscription->getPractitioner() !== $this->practitioner()) {
+            return $this->error('Commande introuvable.', 404);
+        }
+        try {
+            $orderId = $subscriptions->startPayPal($subscription);
+        } catch (BookingException $e) {
+            return $this->error($e->getMessage(), $e->status);
+        }
+
+        return $this->json(['orderId' => $orderId, 'amountUsd' => $subscription->getAmountUsdCents() / 100]);
+    }
+
+    /** PayPal, étape 2 : {"orderId"} approuvé par le praticien ; capture, vérification et publication du profil. */
+    #[Route('/api/pro/subscriptions/{id}/paypal/capture', methods: ['POST'])]
+    #[IsGranted('ROLE_PRACTITIONER')]
+    public function paypalCapture(string $id, Request $request, SubscriptionService $subscriptions): JsonResponse
+    {
+        $subscription = $this->find($id);
+        if (null === $subscription || $subscription->getPractitioner() !== $this->practitioner()) {
+            return $this->error('Commande introuvable.', 404);
+        }
+        try {
+            $subscriptions->completePayPal($subscription, (string) ($this->body($request)['orderId'] ?? ''));
+        } catch (BookingException $e) {
+            $this->audit($request, 'subscription.paypal_failed', 'subscription:'.$id);
+            $this->em->flush();
+
+            return $this->error($e->getMessage(), $e->status);
+        }
+        $this->audit($request, 'subscription.paypal_paid', 'subscription:'.$id);
+        $this->em->flush();
+
+        return $this->json($subscriptions->present($subscription));
+    }
+
+    /** Taux de change face au dollar US (unités de monnaie pour 1 $), pour afficher les équivalents en dollars. */
+    #[Route('/api/exchange-rates', methods: ['GET'])]
+    public function exchangeRates(ExchangeRates $rates): JsonResponse
+    {
+        $table = $rates->table();
+        $wanted = array_unique(['XOF', 'XAF', ...array_column(ReferenceLoader::countries(), 'currency')]);
+
+        return $this->json([
+            'base' => 'USD',
+            'rates' => array_intersect_key($table['rates'], array_flip($wanted)),
+            'updatedAt' => $table['updatedAt'],
+            'source' => $table['source'],
+        ])->setPublic()->setMaxAge(3600);
     }
 
     /** Environnement de développement uniquement : simule la réception du paiement. */

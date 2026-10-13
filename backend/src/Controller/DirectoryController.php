@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Entity\Country;
 use App\Entity\Practitioner;
 use App\Entity\Specialty;
+use App\Enum\Subregion;
 use App\Repository\PractitionerSearch;
 use App\Service\Presenter;
 use App\Service\SlotService;
@@ -17,6 +18,32 @@ use Symfony\Component\Routing\Attribute\Route;
  */
 final class DirectoryController extends ApiController
 {
+    /** Les cinq sous-régions africaines et leurs pays, avec le nombre de praticiens et de régions de chacun. */
+    #[Route('/api/subregions', methods: ['GET'])]
+    public function subregions(PractitionerSearch $search): JsonResponse
+    {
+        $byCountry = $search->countByCountry();
+        $groups = [];
+        foreach (Subregion::cases() as $subregion) {
+            $groups[$subregion->value] = ['code' => $subregion->value, 'name' => $subregion->label(), 'practitionerCount' => 0, 'countries' => []];
+        }
+        foreach ($this->em->getRepository(Country::class)->findBy(['active' => true], ['position' => 'ASC']) as $country) {
+            $count = (int) ($byCountry[$country->getCode()] ?? 0);
+            $group = &$groups[$country->getSubregion()->value];
+            $group['practitionerCount'] += $count;
+            $group['countries'][] = [
+                'code' => $country->getCode(),
+                'name' => $country->getName(),
+                'capital' => $country->getCapital(),
+                'regionCount' => $country->getRegions()->count(),
+                'practitionerCount' => $count,
+            ];
+            unset($group);
+        }
+
+        return $this->json(array_values($groups))->setPublic()->setMaxAge(300);
+    }
+
     /** Page d'accueil pays : régions (avec nombre de praticiens) et spécialités disponibles. */
     #[Route('/api/countries/{code}/overview', methods: ['GET'])]
     public function overview(string $code, PractitionerSearch $search): JsonResponse
@@ -59,6 +86,8 @@ final class DirectoryController extends ApiController
                 'capital' => $country->getCapital(),
                 'timezone' => $country->getTimezone(),
                 'phonePrefix' => $country->getPhonePrefix(),
+                'currency' => $country->getCurrency(),
+                'subregion' => $country->getSubregion()->value,
                 'languages' => $country->getLanguages(),
             ],
             'practitionerCount' => array_sum($byRegion),

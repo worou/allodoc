@@ -64,7 +64,7 @@ final class SubscriptionTest extends KernelTestCase
         self::assertFalse($this->practitioner->isPublished());
         self::assertSame(0, $this->searchTotal());
 
-        $order = $this->subscriptions->order($this->practitioner, $this->plans['semester'], 'mobile_money');
+        $order = $this->subscriptions->order($this->practitioner, $this->plans['semester'], 'orange_money');
         self::assertSame(6000, $order->getAmount());
         self::assertMatchesRegularExpression('/^AD-[A-Z0-9]{6}$/', $order->getReference());
         self::assertFalse($this->practitioner->isPublished(), 'une commande non payée ne publie pas');
@@ -78,11 +78,11 @@ final class SubscriptionTest extends KernelTestCase
 
     public function testEarlyRenewalStacksOnCurrentPeriod(): void
     {
-        $first = $this->subscriptions->order($this->practitioner, $this->plans['semester'], 'mobile_money');
+        $first = $this->subscriptions->order($this->practitioner, $this->plans['semester'], 'orange_money');
         $this->subscriptions->confirmPayment($first, null, null);
         $firstEnd = $first->getEndsAt();
 
-        $renewal = $this->subscriptions->order($this->practitioner, $this->plans['annual'], 'mobile_money');
+        $renewal = $this->subscriptions->order($this->practitioner, $this->plans['annual'], 'orange_money');
         $this->subscriptions->confirmPayment($renewal, null, null);
 
         self::assertEquals($firstEnd, $renewal->getStartsAt(), 'le renouvellement démarre à la fin de la période en cours');
@@ -94,7 +94,7 @@ final class SubscriptionTest extends KernelTestCase
         $this->practitioner->setPublishedUntil(new \DateTimeImmutable('-10 days'));
         self::assertFalse($this->practitioner->isPublished());
 
-        $order = $this->subscriptions->order($this->practitioner, $this->plans['annual'], 'mobile_money');
+        $order = $this->subscriptions->order($this->practitioner, $this->plans['annual'], 'orange_money');
         $this->subscriptions->confirmPayment($order, null, null);
 
         self::assertEqualsWithDelta(time(), $order->getStartsAt()->getTimestamp(), 5);
@@ -111,7 +111,7 @@ final class SubscriptionTest extends KernelTestCase
 
     public function testPaymentCannotBeConfirmedTwice(): void
     {
-        $order = $this->subscriptions->order($this->practitioner, $this->plans['semester'], 'mobile_money');
+        $order = $this->subscriptions->order($this->practitioner, $this->plans['semester'], 'orange_money');
         $this->subscriptions->confirmPayment($order, null, null);
 
         $this->expectException(BookingException::class);
@@ -120,17 +120,17 @@ final class SubscriptionTest extends KernelTestCase
 
     public function testNewOrderReplacesPendingOne(): void
     {
-        $old = $this->subscriptions->order($this->practitioner, $this->plans['semester'], 'mobile_money');
-        $new = $this->subscriptions->order($this->practitioner, $this->plans['annual'], 'mobile_money');
+        $old = $this->subscriptions->order($this->practitioner, $this->plans['semester'], 'orange_money');
+        $new = $this->subscriptions->order($this->practitioner, $this->plans['annual'], 'orange_money');
 
         self::assertSame('cancelled', $old->getStatus()->value);
         self::assertSame([$new], $this->subscriptions->pending($this->practitioner));
     }
 
-    public function testMethodWithoutReceivingNumberIsRefused(): void
+    public function testMethodNotOfferedInTheCountryIsRefused(): void
     {
-        // Paiement uniquement via l'application : ni espèces, ni opérateur sans numéro de réception configuré.
-        foreach (['cash', 'orange_money'] as $method) {
+        // Ni espèces, ni opérateur d'un autre pays (M-Pesa n'est pas proposé au Mali).
+        foreach (['cash', 'mpesa'] as $method) {
             try {
                 $this->subscriptions->order($this->practitioner, $this->plans['semester'], $method);
                 self::fail($method.' aurait dû être refusé');

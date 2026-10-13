@@ -2,7 +2,7 @@
     "openapi": "3.2.0",
     "info": {
         "title": "AlloDoc API",
-        "description": "Prise de rendez-vous medicaux - Mali, Burkina Faso, Niger",
+        "description": "Prise de rendez-vous medicaux dans toute l'Afrique (55 pays, 5 sous-regions)",
         "version": "1.0.0"
     },
     "servers": [
@@ -12,6 +12,29 @@
         }
     ],
     "paths": {
+        "/api/exchange-rates": {
+            "get": {
+                "operationId": "exchangeRates",
+                "tags": [
+                    "Abonnement"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Taux du jour",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ExchangeRates"
+                                }
+                            }
+                        }
+                    }
+                },
+                "summary": "Taux de change face au dollar US",
+                "description": "Unit\u00e9s de chaque monnaie (FCFA et monnaies des pays africains) pour 1 $, mises \u00e0 jour chaque jour ; taux de secours si le service est injoignable. Cache public 1 heure.",
+                "parameters": []
+            }
+        },
         "/api/pro/subscription": {
             "get": {
                 "operationId": "proSubscription",
@@ -143,6 +166,150 @@
                         "explode": false
                     }
                 ],
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/pro/subscriptions/{id}/paypal": {
+            "post": {
+                "operationId": "proPayPalStart",
+                "tags": [
+                    "Abonnement"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Commande PayPal cr\u00e9\u00e9e",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/PayPalOrder"
+                                }
+                            }
+                        }
+                    },
+                    "409": {
+                        "description": "Commande non r\u00e9gl\u00e9e par PayPal ou d\u00e9j\u00e0 trait\u00e9e",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        }
+                    },
+                    "503": {
+                        "description": "PayPal non configur\u00e9",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        }
+                    }
+                },
+                "summary": "PayPal : cr\u00e9er la commande de paiement",
+                "description": "Commande en attente r\u00e9gl\u00e9e par PayPal : cr\u00e9e la commande PayPal en dollars US (prix en FCFA converti au taux du jour) et renvoie son identifiant pour le bouton PayPal.",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Identifiant du rendez-vous (UUID)",
+                        "required": true,
+                        "deprecated": false,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        },
+                        "style": "simple",
+                        "explode": false
+                    }
+                ],
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/pro/subscriptions/{id}/paypal/capture": {
+            "post": {
+                "operationId": "proPayPalCapture",
+                "tags": [
+                    "Abonnement"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Paiement re\u00e7u, abonnement actif",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Subscription"
+                                }
+                            }
+                        }
+                    },
+                    "402": {
+                        "description": "Paiement non abouti",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Commande PayPal inconnue",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        }
+                    },
+                    "409": {
+                        "description": "Paiement non conforme ou commande d\u00e9j\u00e0 trait\u00e9e",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                }
+                            }
+                        }
+                    }
+                },
+                "summary": "PayPal : encaisser et publier le profil",
+                "description": "Apr\u00e8s accord du payeur : capture du paiement, v\u00e9rification de la r\u00e9f\u00e9rence, du montant et de la devise, puis publication du profil (comme une confirmation manuelle).",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Identifiant du rendez-vous (UUID)",
+                        "required": true,
+                        "deprecated": false,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        },
+                        "style": "simple",
+                        "explode": false
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/PayPalCaptureInput"
+                            }
+                        }
+                    },
+                    "required": true
+                },
                 "security": [
                     {
                         "bearerAuth": []
@@ -520,15 +687,11 @@
                         "deprecated": false,
                         "schema": {
                             "type": "string",
-                            "enum": [
-                                "ML",
-                                "BF",
-                                "NE"
-                            ]
+                            "pattern": "^[A-Z]{2}$"
                         },
                         "style": "simple",
                         "explode": false,
-                        "example": "ML"
+                        "example": "SN"
                     }
                 ]
             }
@@ -677,16 +840,12 @@
                     {
                         "name": "country",
                         "in": "query",
-                        "description": "Code pays",
+                        "description": "Code ISO du pays (55 pays africains)",
                         "required": false,
                         "deprecated": false,
                         "schema": {
                             "type": "string",
-                            "enum": [
-                                "ML",
-                                "BF",
-                                "NE"
-                            ]
+                            "pattern": "^[A-Z]{2}$"
                         },
                         "style": "form",
                         "explode": true,
@@ -834,6 +993,29 @@
                         "explode": true
                     }
                 ]
+            }
+        },
+        "/api/subregions": {
+            "get": {
+                "operationId": "subregions",
+                "tags": [
+                    "Annuaire"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Sous-r\u00e9gions et pays",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SubregionList"
+                                }
+                            }
+                        }
+                    }
+                },
+                "summary": "Sous-r\u00e9gions africaines",
+                "description": "Les 5 sous-r\u00e9gions (nord, ouest, centre, est, australe) et leurs pays, avec le nombre de r\u00e9gions et de praticiens publi\u00e9s. Cache public 5 minutes.",
+                "parameters": []
             }
         },
         "/api/auth/oauth/exchange": {
@@ -2597,7 +2779,7 @@
                 "description": "Pays couvert par la plateforme. Ajouter un pays = ajouter une ligne en base, aucun code en dur.",
                 "properties": {
                     "code": {
-                        "description": "Code ISO 3166-1 alpha-2 (ML, BF, NE), sert d'identifiant dans l'API.",
+                        "description": "Code ISO 3166-1 alpha-2 (ML, SN, KE...), sert d'identifiant dans l'API.",
                         "type": "string"
                     },
                     "name": {
@@ -2606,15 +2788,39 @@
                     "capital": {
                         "type": "string"
                     },
+                    "subregion": {
+                        "description": "Sous-r\u00e9gion africaine (nord, ouest, centre, est, australe).",
+                        "default": "west",
+                        "type": "string",
+                        "enum": [
+                            "north",
+                            "west",
+                            "central",
+                            "east",
+                            "southern"
+                        ]
+                    },
                     "timezone": {
-                        "description": "Fuseau IANA : Africa/Bamako, Africa/Ouagadougou, Africa/Niamey.",
+                        "description": "Fuseau IANA : Africa/Bamako, Africa/Nairobi.",
                         "type": "string"
                     },
                     "phonePrefix": {
                         "type": "string"
                     },
+                    "phoneLengths": {
+                        "description": "Longueurs possibles du num\u00e9ro national, sans l'indicatif ni le 0 initial.",
+                        "default": [
+                            8
+                        ],
+                        "type": "array",
+                        "items": {
+                            "type": [
+                                "string",
+                                "null"
+                            ]
+                        }
+                    },
                     "currency": {
-                        "readOnly": true,
                         "default": "XOF",
                         "type": "string"
                     },
@@ -2639,7 +2845,7 @@
                 "type": "object",
                 "properties": {
                     "code": {
-                        "description": "Code ISO 3166-1 alpha-2 (ML, BF, NE), sert d'identifiant dans l'API.",
+                        "description": "Code ISO 3166-1 alpha-2 (ML, SN, KE...), sert d'identifiant dans l'API.",
                         "type": "string"
                     },
                     "name": {
@@ -2656,7 +2862,7 @@
                         "type": "object",
                         "properties": {
                             "code": {
-                                "description": "Code ISO 3166-1 alpha-2 (ML, BF, NE), sert d'identifiant dans l'API.",
+                                "description": "Code ISO 3166-1 alpha-2 (ML, SN, KE...), sert d'identifiant dans l'API.",
                                 "type": "string"
                             },
                             "name": {
@@ -2665,15 +2871,39 @@
                             "capital": {
                                 "type": "string"
                             },
+                            "subregion": {
+                                "description": "Sous-r\u00e9gion africaine (nord, ouest, centre, est, australe).",
+                                "default": "west",
+                                "type": "string",
+                                "enum": [
+                                    "north",
+                                    "west",
+                                    "central",
+                                    "east",
+                                    "southern"
+                                ]
+                            },
                             "timezone": {
-                                "description": "Fuseau IANA : Africa/Bamako, Africa/Ouagadougou, Africa/Niamey.",
+                                "description": "Fuseau IANA : Africa/Bamako, Africa/Nairobi.",
                                 "type": "string"
                             },
                             "phonePrefix": {
                                 "type": "string"
                             },
+                            "phoneLengths": {
+                                "description": "Longueurs possibles du num\u00e9ro national, sans l'indicatif ni le 0 initial.",
+                                "default": [
+                                    8
+                                ],
+                                "type": "array",
+                                "items": {
+                                    "type": [
+                                        "string",
+                                        "null"
+                                    ]
+                                }
+                            },
                             "currency": {
-                                "readOnly": true,
                                 "default": "XOF",
                                 "type": "string"
                             },
@@ -2706,7 +2936,7 @@
                         "type": "object",
                         "properties": {
                             "code": {
-                                "description": "Code ISO 3166-1 alpha-2 (ML, BF, NE), sert d'identifiant dans l'API.",
+                                "description": "Code ISO 3166-1 alpha-2 (ML, SN, KE...), sert d'identifiant dans l'API.",
                                 "type": "string"
                             },
                             "name": {
@@ -3307,17 +3537,13 @@
                     "phone": {
                         "type": "string",
                         "example": "70 00 00 01",
-                        "description": "SMS : 8 chiffres (avec country) ou format international +223\u2026"
+                        "description": "SMS : num\u00e9ro national (avec country) ou format international (+223\u2026, +234\u2026)"
                     },
                     "country": {
                         "type": "string",
-                        "enum": [
-                            "ML",
-                            "BF",
-                            "NE"
-                        ],
-                        "example": "ML",
-                        "description": "Pays pour compl\u00e9ter l'indicatif"
+                        "pattern": "^[A-Z]{2}$",
+                        "description": "Code ISO 3166-1 alpha-2 (55 pays africains)",
+                        "example": "ML"
                     },
                     "email": {
                         "type": "string",
@@ -3372,11 +3598,8 @@
                     },
                     "country": {
                         "type": "string",
-                        "enum": [
-                            "ML",
-                            "BF",
-                            "NE"
-                        ],
+                        "pattern": "^[A-Z]{2}$",
+                        "description": "Code ISO 3166-1 alpha-2 (55 pays africains)",
                         "example": "ML"
                     },
                     "email": {
@@ -3456,11 +3679,8 @@
                     },
                     "country": {
                         "type": "string",
-                        "enum": [
-                            "ML",
-                            "BF",
-                            "NE"
-                        ],
+                        "pattern": "^[A-Z]{2}$",
+                        "description": "Code ISO 3166-1 alpha-2 (55 pays africains)",
                         "example": "ML"
                     },
                     "code": {
@@ -3553,7 +3773,8 @@
                         ]
                     },
                     "paymentMethod": {
-                        "type": "string"
+                        "type": "string",
+                        "example": "orange_money"
                     },
                     "paymentMethodLabel": {
                         "type": "string"
@@ -3563,6 +3784,14 @@
                             "string",
                             "null"
                         ]
+                    },
+                    "amountUsd": {
+                        "type": [
+                            "number",
+                            "null"
+                        ],
+                        "description": "Montant factur\u00e9 en dollars (paiement PayPal)",
+                        "example": 17.1
                     },
                     "startsAt": {
                         "type": [
@@ -3630,6 +3859,60 @@
                     }
                 }
             },
+            "PayPalOrder": {
+                "type": "object",
+                "properties": {
+                    "orderId": {
+                        "type": "string"
+                    },
+                    "amountUsd": {
+                        "type": "number",
+                        "example": 17.1
+                    }
+                }
+            },
+            "PayPalCaptureInput": {
+                "type": "object",
+                "properties": {
+                    "orderId": {
+                        "type": "string",
+                        "description": "Identifiant renvoy\u00e9 par /paypal (data.orderID du bouton PayPal)"
+                    }
+                },
+                "required": [
+                    "orderId"
+                ]
+            },
+            "ExchangeRates": {
+                "type": "object",
+                "properties": {
+                    "base": {
+                        "type": "string",
+                        "example": "USD"
+                    },
+                    "rates": {
+                        "type": "object",
+                        "additionalProperties": {
+                            "type": "number"
+                        },
+                        "example": {
+                            "XOF": 585.4,
+                            "KES": 129.7
+                        }
+                    },
+                    "updatedAt": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "date-time"
+                    },
+                    "source": {
+                        "type": "string",
+                        "example": "open.er-api.com"
+                    }
+                }
+            },
             "SubscriptionStatus": {
                 "type": "object",
                 "properties": {
@@ -3690,14 +3973,34 @@
                                     "type": "string"
                                 }
                             }
-                        }
+                        },
+                        "description": "Moyens de paiement propos\u00e9s dans le pays du praticien"
                     },
                     "paymentAccount": {
                         "type": "object",
                         "additionalProperties": {
-                            "type": "string"
+                            "type": [
+                                "string",
+                                "null"
+                            ]
                         },
-                        "description": "Titulaire et num\u00e9ros marchands du pays"
+                        "description": "Titulaire (\"holder\") et num\u00e9ro de r\u00e9ception par moyen ; null : coordonn\u00e9es envoy\u00e9es par SMS par l'\u00e9quipe AlloDoc"
+                    },
+                    "paypal": {
+                        "type": [
+                            "object",
+                            "null"
+                        ],
+                        "properties": {
+                            "clientId": {
+                                "type": "string"
+                            },
+                            "currency": {
+                                "type": "string",
+                                "example": "USD"
+                            }
+                        },
+                        "description": "null si PayPal n'est pas configur\u00e9"
                     },
                     "pending": {
                         "oneOf": [
@@ -3970,11 +4273,8 @@
                         "properties": {
                             "code": {
                                 "type": "string",
-                                "enum": [
-                                    "ML",
-                                    "BF",
-                                    "NE"
-                                ],
+                                "pattern": "^[A-Z]{2}$",
+                                "description": "Code ISO 3166-1 alpha-2 (55 pays africains)",
                                 "example": "ML"
                             },
                             "name": {
@@ -4243,11 +4543,8 @@
                         "properties": {
                             "code": {
                                 "type": "string",
-                                "enum": [
-                                    "ML",
-                                    "BF",
-                                    "NE"
-                                ],
+                                "pattern": "^[A-Z]{2}$",
+                                "description": "Code ISO 3166-1 alpha-2 (55 pays africains)",
                                 "example": "ML"
                             },
                             "name": {
@@ -4261,6 +4558,19 @@
                             },
                             "phonePrefix": {
                                 "type": "string"
+                            },
+                            "currency": {
+                                "type": "string"
+                            },
+                            "subregion": {
+                                "type": "string",
+                                "enum": [
+                                    "north",
+                                    "west",
+                                    "central",
+                                    "east",
+                                    "southern"
+                                ]
                             },
                             "languages": {
                                 "type": "array",
@@ -4321,6 +4631,56 @@
                                 },
                                 "practitionerCount": {
                                     "type": "integer"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "SubregionList": {
+                "type": "array",
+                "items": {
+                    "type": "object",
+                    "properties": {
+                        "code": {
+                            "type": "string",
+                            "enum": [
+                                "north",
+                                "west",
+                                "central",
+                                "east",
+                                "southern"
+                            ]
+                        },
+                        "name": {
+                            "type": "string"
+                        },
+                        "practitionerCount": {
+                            "type": "integer"
+                        },
+                        "countries": {
+                            "type": "array",
+                            "items": {
+                                "type": "object",
+                                "properties": {
+                                    "code": {
+                                        "type": "string",
+                                        "pattern": "^[A-Z]{2}$",
+                                        "description": "Code ISO 3166-1 alpha-2 (55 pays africains)",
+                                        "example": "ML"
+                                    },
+                                    "name": {
+                                        "type": "string"
+                                    },
+                                    "capital": {
+                                        "type": "string"
+                                    },
+                                    "regionCount": {
+                                        "type": "integer"
+                                    },
+                                    "practitionerCount": {
+                                        "type": "integer"
+                                    }
                                 }
                             }
                         }

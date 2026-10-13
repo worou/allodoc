@@ -14,12 +14,71 @@ use Symfony\Component\Uid\Uuid;
 #[ORM\Index(columns: ['status', 'created_at'])]
 class Subscription
 {
+    /**
+     * Moyens de paiement (code => libellé). Les moyens proposés à un praticien dépendent de son pays
+     * ("payments" dans config/reference/africa.json) ; PayPal est encaissé en dollars et confirmé automatiquement.
+     */
     public const METHODS = [
         'mobile_money' => 'Mobile money',
+        'paypal' => 'PayPal',
+        'bank_transfer' => 'Virement bancaire',
+        // Afrique de l'Ouest et centrale
         'orange_money' => 'Orange Money',
         'moov_money' => 'Moov Money',
+        'mtn_momo' => 'MTN Mobile Money',
         'wave' => 'Wave',
         'airtel_money' => 'Airtel Money',
+        'free_money' => 'Free Money',
+        'celtiis_cash' => 'Celtiis Cash',
+        'flooz' => 'Flooz',
+        'tmoney' => 'T-Money',
+        'telecel_cash' => 'Telecel Cash',
+        'at_money' => 'AT Money',
+        'afrimoney' => 'Afrimoney',
+        'qmoney' => 'QMoney',
+        'africell_money' => 'Africell Money',
+        'zamani_cash' => 'Zamani Cash',
+        'bankily' => 'Bankily',
+        'masrvi' => 'Masrvi',
+        'sedad' => 'Sedad',
+        'opay' => 'OPay',
+        'palmpay' => 'PalmPay',
+        'telecel_money' => 'Telecel Money',
+        'multicaixa_express' => 'Multicaixa Express',
+        'unitel_money' => 'Unitel Money',
+        // Afrique du Nord
+        'baridimob' => 'BaridiMob',
+        'vodafone_cash' => 'Vodafone Cash',
+        'instapay' => 'InstaPay',
+        'fawry' => 'Fawry',
+        'cash_plus' => 'Cash Plus',
+        'wafacash' => 'Wafacash',
+        'bankak' => 'Bankak',
+        'd17' => 'D17',
+        'flouci' => 'Flouci',
+        // Afrique de l'Est et australe
+        'mpesa' => 'M-Pesa',
+        'telebirr' => 'telebirr',
+        'mvola' => 'MVola',
+        'huri_money' => 'Huri Money',
+        'd_money' => 'D-Money',
+        'waafi' => 'Waafi',
+        'lumicash' => 'Lumicash',
+        'ecocash' => 'EcoCash',
+        'onemoney' => 'OneMoney',
+        'mpamba' => 'TNM Mpamba',
+        'juice' => 'Juice by MCB',
+        'myt_money' => 'my.t money',
+        'emola' => 'e-Mola',
+        'mkesh' => 'mKesh',
+        'evc_plus' => 'EVC Plus',
+        'zaad' => 'Zaad',
+        'sahal' => 'Sahal',
+        'mgurush' => 'm-Gurush',
+        'mixx_by_yas' => 'Mixx by Yas',
+        'halopesa' => 'HaloPesa',
+        'zamtel_kwacha' => 'Zamtel Kwacha',
+        'myzaka' => 'MyZaka',
     ];
 
     #[ORM\Id, ORM\Column(type: 'uuid')]
@@ -53,6 +112,13 @@ class Subscription
     /** Identifiant de transaction de l'opérateur, saisi à la confirmation. */
     #[ORM\Column(length: 80, nullable: true)]
     private ?string $transactionId = null;
+
+    /** Paiement en ligne (PayPal) : identifiant de la commande chez le prestataire et montant facturé en cents de dollar. */
+    #[ORM\Column(length: 40, nullable: true)]
+    private ?string $providerOrderId = null;
+
+    #[ORM\Column(nullable: true)]
+    private ?int $amountUsdCents = null;
 
     #[ORM\Column(nullable: true)]
     private ?\DateTimeImmutable $startsAt = null;
@@ -96,6 +162,21 @@ class Subscription
     public function getCreatedAt(): \DateTimeImmutable { return $this->createdAt; }
     public function getPaidAt(): ?\DateTimeImmutable { return $this->paidAt; }
     public function getConfirmedBy(): ?User { return $this->confirmedBy; }
+    public function getProviderOrderId(): ?string { return $this->providerOrderId; }
+    public function getAmountUsdCents(): ?int { return $this->amountUsdCents; }
+
+    /** Paiement reçu mais non validé automatiquement (montant ou référence inattendus) : trace pour l'administrateur. */
+    public function recordUnverifiedPayment(string $transactionId): void
+    {
+        $this->transactionId = mb_substr($transactionId, 0, 80);
+    }
+
+    /** Commande créée chez le prestataire de paiement en ligne, pour un montant en dollars figé. */
+    public function startOnlinePayment(string $providerOrderId, int $amountUsdCents): void
+    {
+        $this->providerOrderId = $providerOrderId;
+        $this->amountUsdCents = $amountUsdCents;
+    }
 
     /** Enregistre le paiement et fixe la période, qui commence à $startsAt (fin de la période en cours ou maintenant). */
     public function markPaid(\DateTimeImmutable $startsAt, ?string $transactionId, ?User $confirmedBy): void

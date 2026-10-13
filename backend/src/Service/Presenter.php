@@ -16,6 +16,9 @@ final class Presenter
     public const LANGUAGES = [
         'fr' => 'Français', 'en' => 'Anglais', 'ar' => 'Arabe', 'bm' => 'Bambara', 'mos' => 'Mooré',
         'ha' => 'Haoussa', 'dje' => 'Zarma', 'ff' => 'Peul', 'son' => 'Songhaï', 'tmh' => 'Tamasheq', 'dyu' => 'Dioula',
+        'wo' => 'Wolof', 'yo' => 'Yoruba', 'ig' => 'Igbo', 'sw' => 'Swahili', 'ber' => 'Amazighe', 'zu' => 'Zoulou',
+        'xh' => 'Xhosa', 'af' => 'Afrikaans', 'pt' => 'Portugais', 'es' => 'Espagnol', 'ln' => 'Lingala', 'am' => 'Amharique',
+        'bci' => 'Baoulé', 'fon' => 'Fon', 'ee' => 'Éwé', 'ak' => 'Akan', 'rw' => 'Kinyarwanda', 'mg' => 'Malgache',
     ];
 
     public function practitionerSummary(Practitioner $p): array
@@ -32,6 +35,7 @@ final class Presenter
             'gender' => $p->getGender(),
             'photoUrl' => $p->getPhotoUrl(),
             'fee' => $p->getFee(),
+            'currency' => $facility?->getCity()->getRegion()->getCountry()->getCurrency() ?? 'XOF',
             'teleconsultation' => $p->hasTeleconsultation(),
             'acceptsNewPatients' => $p->acceptsNewPatients(),
             'languages' => array_map(fn (string $code) => ['code' => $code, 'name' => self::LANGUAGES[$code] ?? $code], $p->getLanguages()),
@@ -80,7 +84,7 @@ final class Presenter
             'longitude' => $f->getLongitude(),
             'city' => $f->getCity()->getName(),
             'region' => ['slug' => $region->getSlug(), 'name' => $region->getName()],
-            'country' => ['code' => $country->getCode(), 'name' => $country->getName()],
+            'country' => ['code' => $country->getCode(), 'name' => $country->getName(), 'subregion' => $country->getSubregion()->value, 'currency' => $country->getCurrency()],
             'timezone' => $country->getTimezone(),
         ];
     }

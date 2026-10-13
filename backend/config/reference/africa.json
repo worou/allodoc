@@ -1,0 +1,185 @@
+{
+    "_comment": "Moyens de paiement de l'abonnement praticien par pays dans \"payments\" (codes de App\\Entity\\Subscription::METHODS ; numéros de réception dans services.yaml). Référentiel géographique : 55 pays et territoires répartis en 5 sous-régions, avec leur premier niveau administratif. Une région s'écrit \"Nom\" (chef-lieu homonyme) ou [nom, chef-lieu, ancien nom|null, [villes supplémentaires]]. Découpages connus en 2025, marqués provisoires en attendant la validation des ministères de la santé.",
+    "subregions": ["north", "west", "central", "east", "southern"],
+    "countries": [
+        {"code": "DZ", "name": "Algérie", "capital": "Alger", "timezone": "Africa/Algiers", "phonePrefix": "+213", "phoneLengths": [9], "currency": "DZD", "languages": ["ar", "ber", "fr"], "subregion": "north", "payments": ["baridimob", "bank_transfer", "paypal"], "regions": [
+            "Alger", "Adrar", "Chlef", "Laghouat", "Oum El Bouaghi", "Batna", "Béjaïa", "Biskra", "Béchar", "Blida", "Bouira", "Tamanrasset", "Tébessa", "Tlemcen", "Tiaret", "Tizi Ouzou", "Djelfa", "Jijel", "Sétif", "Saïda", "Skikda", "Sidi Bel Abbès", "Annaba", "Guelma", "Constantine", "Médéa", "Mostaganem", "M'Sila", "Mascara", "Ouargla", "Oran", "El Bayadh", "Illizi", "Bordj Bou Arréridj", "Boumerdès", "El Tarf", "Tindouf", "Tissemsilt", "El Oued", "Khenchela", "Souk Ahras", "Tipaza", "Mila", "Aïn Defla", "Naâma", "Aïn Témouchent", "Ghardaïa", "Relizane", "Timimoun", "Bordj Badji Mokhtar", "Ouled Djellal", "Béni Abbès", "In Salah", "In Guezzam", "Touggourt", "Djanet", "El M'Ghair", "El Meniaa"
+        ]},
+        {"code": "EG", "name": "Égypte", "capital": "Le Caire", "timezone": "Africa/Cairo", "phonePrefix": "+20", "phoneLengths": [10], "currency": "EGP", "languages": ["ar", "en"], "subregion": "north", "payments": ["vodafone_cash", "instapay", "fawry", "paypal"], "regions": [
+            "Le Caire", "Gizeh", "Alexandrie", ["Qalyubiya", "Banha"], ["Charqiya", "Zagazig"], ["Daqahliya", "Mansourah"], ["Gharbiya", "Tanta"], ["Menoufiya", "Shibin El Kom"], ["Beheira", "Damanhour"], "Kafr el-Cheikh", "Damiette", "Port-Saïd", "Ismaïlia", "Suez", "Fayoum", "Beni Suef", "Minya", "Assiout", "Sohag", "Qena", "Louxor", "Assouan", ["Mer Rouge", "Hurghada"], ["Nouvelle-Vallée", "Kharga"], ["Matruh", "Marsa Matruh"], ["Sinaï du Nord", "El-Arich"], ["Sinaï du Sud", "El-Tor"]
+        ]},
+        {"code": "LY", "name": "Libye", "capital": "Tripoli", "timezone": "Africa/Tripoli", "phonePrefix": "+218", "phoneLengths": [9], "currency": "LYD", "languages": ["ar", "ber"], "subregion": "north", "payments": ["bank_transfer"], "regions": [
+            "Tripoli", ["Jafara", "Aziziya"], ["Zaouïa", "Zaouïa"], ["Nuqat al Khams", "Zouara"], ["Murqub", "Khoms"], "Misrata", "Syrte", "Benghazi", ["Al Marj", "Al Marj"], ["Jabal al Akhdar", "Bayda"], "Derna", ["Butnan", "Tobrouk"], ["Al Wahat", "Ajdabiya"], "Koufra", ["Jabal al Gharbi", "Gharyan"], "Nalout", "Sebha", "Mourzouq", ["Wadi al Hayaa", "Oubari"], "Ghat", ["Wadi al Shatii", "Brak"], ["Jufra", "Houn"]
+        ]},
+        {"code": "MA", "name": "Maroc", "capital": "Rabat", "timezone": "Africa/Casablanca", "phonePrefix": "+212", "phoneLengths": [9], "currency": "MAD", "languages": ["ar", "ber", "fr"], "subregion": "north", "payments": ["cash_plus", "wafacash", "bank_transfer", "paypal"], "regions": [
+            ["Rabat-Salé-Kénitra", "Rabat"], ["Casablanca-Settat", "Casablanca"], ["Tanger-Tétouan-Al Hoceïma", "Tanger"], ["L'Oriental", "Oujda"], ["Fès-Meknès", "Fès"], ["Béni Mellal-Khénifra", "Béni Mellal"], ["Marrakech-Safi", "Marrakech"], ["Drâa-Tafilalet", "Errachidia"], ["Souss-Massa", "Agadir"], ["Guelmim-Oued Noun", "Guelmim"]
+        ]},
+        {"code": "SD", "name": "Soudan", "capital": "Khartoum", "timezone": "Africa/Khartoum", "phonePrefix": "+249", "phoneLengths": [9], "currency": "SDG", "languages": ["ar", "en"], "subregion": "north", "payments": ["bankak", "bank_transfer"], "regions": [
+            "Khartoum", ["Nord", "Dongola"], ["Nil", "Ed Damer"], ["Mer Rouge", "Port-Soudan"], "Kassala", ["Al Qadarif", "Gedaref"], ["Al Jazirah", "Wad Madani"], ["Sennar", "Sinja"], ["Nil Blanc", "Rabak"], ["Nil Bleu", "Ed Damazin"], ["Kordofan du Nord", "El Obeid"], ["Kordofan du Sud", "Kadugli"], ["Kordofan de l'Ouest", "El Fula"], ["Darfour du Nord", "El Fasher"], ["Darfour de l'Ouest", "El Geneina"], ["Darfour du Sud", "Nyala"], ["Darfour central", "Zalingei"], ["Darfour de l'Est", "Ed Daein"]
+        ]},
+        {"code": "TN", "name": "Tunisie", "capital": "Tunis", "timezone": "Africa/Tunis", "phonePrefix": "+216", "phoneLengths": [8], "currency": "TND", "languages": ["ar", "fr"], "subregion": "north", "payments": ["d17", "flouci", "bank_transfer", "paypal"], "regions": [
+            "Tunis", "Ariana", "Ben Arous", "Manouba", "Nabeul", "Zaghouan", "Bizerte", "Béja", "Jendouba", "Le Kef", "Siliana", "Sousse", "Monastir", "Mahdia", "Sfax", "Kairouan", "Kasserine", "Sidi Bouzid", "Gabès", "Médenine", "Tataouine", "Gafsa", "Tozeur", "Kébili"
+        ]},
+        {"code": "EH", "name": "Sahara occidental", "capital": "Laâyoune", "timezone": "Africa/El_Aaiun", "phonePrefix": "+212", "phoneLengths": [9], "currency": "MAD", "languages": ["ar", "es"], "subregion": "north", "payments": ["cash_plus", "wafacash", "bank_transfer", "paypal"], "regions": [
+            ["Saguia el-Hamra", "Laâyoune"], ["Río de Oro", "Dakhla"]
+        ]},
+
+        {"code": "BJ", "name": "Bénin", "capital": "Porto-Novo", "timezone": "Africa/Porto-Novo", "phonePrefix": "+229", "phoneLengths": [10], "currency": "XOF", "languages": ["fr", "fon", "yo"], "subregion": "west", "payments": ["mtn_momo", "moov_money", "celtiis_cash", "paypal"], "regions": [
+            ["Littoral", "Cotonou"], ["Ouémé", "Porto-Novo"], ["Atlantique", "Allada"], ["Alibori", "Kandi"], ["Atacora", "Natitingou"], ["Borgou", "Parakou"], ["Collines", "Dassa-Zoumé"], ["Couffo", "Aplahoué"], ["Donga", "Djougou"], ["Mono", "Lokossa"], ["Plateau", "Pobè"], ["Zou", "Abomey"]
+        ]},
+        {"code": "BF", "name": "Burkina Faso", "capital": "Ouagadougou", "timezone": "Africa/Ouagadougou", "phonePrefix": "+226", "phoneLengths": [8], "currency": "XOF", "languages": ["fr", "mos", "dyu", "ff"], "subregion": "west", "payments": ["orange_money", "moov_money", "paypal"], "regions": [
+            ["Kadiogo", "Ouagadougou", "Centre"], ["Guiriko", "Bobo-Dioulasso", "Hauts-Bassins"], ["Bankui", "Dédougou", "Boucle du Mouhoun"], ["Djôrô", "Gaoua", "Sud-Ouest"], ["Goulmou", "Fada N'Gourma", "Est"], ["Kuilsé", "Kaya", "Centre-Nord"], ["Liptako", "Dori", "Sahel"], ["Nando", "Koudougou", "Centre-Ouest"], ["Nakambé", "Tenkodogo", "Centre-Est"], ["Nazinon", "Manga", "Centre-Sud"], ["Oubri", "Ziniaré", "Plateau-Central"], ["Sirba", "Bogandé"], ["Soum", "Djibo"], ["Tannounyan", "Banfora", "Cascades"], ["Tapoa", "Diapaga"], ["Sourou", "Tougan"], ["Yaadga", "Ouahigouya", "Nord"]
+        ]},
+        {"code": "CV", "name": "Cap-Vert", "capital": "Praia", "timezone": "Atlantic/Cape_Verde", "phonePrefix": "+238", "phoneLengths": [7], "currency": "CVE", "languages": ["pt", "kea"], "subregion": "west", "payments": ["bank_transfer", "paypal"], "regions": [
+            ["Santiago", "Praia"], ["São Vicente", "Mindelo"], ["Santo Antão", "Porto Novo"], ["Fogo", "São Filipe"], ["Sal", "Espargos"], ["Boa Vista", "Sal Rei"], ["Maio", "Vila do Maio"], ["São Nicolau", "Ribeira Brava"], ["Brava", "Nova Sintra"]
+        ]},
+        {"code": "CI", "name": "Côte d'Ivoire", "capital": "Yamoussoukro", "timezone": "Africa/Abidjan", "phonePrefix": "+225", "phoneLengths": [10], "currency": "XOF", "languages": ["fr", "dyu", "bci"], "subregion": "west", "payments": ["orange_money", "mtn_momo", "moov_money", "wave", "paypal"], "regions": [
+            ["Abidjan", "Abidjan"], ["Yamoussoukro", "Yamoussoukro"], ["Bas-Sassandra", "San-Pédro"], ["Comoé", "Abengourou"], ["Denguélé", "Odienné"], ["Gôh-Djiboua", "Gagnoa"], ["Lacs", "Dimbokro"], ["Lagunes", "Dabou"], ["Montagnes", "Man"], ["Sassandra-Marahoué", "Daloa"], ["Savanes", "Korhogo"], ["Vallée du Bandama", "Bouaké"], ["Woroba", "Séguéla"], ["Zanzan", "Bondoukou"]
+        ]},
+        {"code": "GM", "name": "Gambie", "capital": "Banjul", "timezone": "Africa/Banjul", "phonePrefix": "+220", "phoneLengths": [7], "currency": "GMD", "languages": ["en", "wo", "mnk", "ff"], "subregion": "west", "payments": ["wave", "afrimoney", "qmoney", "paypal"], "regions": [
+            "Banjul", "Kanifing", ["West Coast", "Brikama"], ["Lower River", "Mansa Konko"], ["Central River", "Janjanbureh"], ["North Bank", "Kerewan"], ["Upper River", "Basse Santa Su"]
+        ]},
+        {"code": "GH", "name": "Ghana", "capital": "Accra", "timezone": "Africa/Accra", "phonePrefix": "+233", "phoneLengths": [9], "currency": "GHS", "languages": ["en", "ak", "ee"], "subregion": "west", "payments": ["mtn_momo", "telecel_cash", "at_money", "paypal"], "regions": [
+            ["Greater Accra", "Accra"], ["Ashanti", "Kumasi"], ["Eastern", "Koforidua"], ["Western", "Sekondi-Takoradi"], ["Western North", "Sefwi Wiawso"], ["Central", "Cape Coast"], ["Volta", "Ho"], ["Oti", "Dambai"], ["Northern", "Tamale"], ["Savannah", "Damongo"], ["North East", "Nalerigu"], ["Upper East", "Bolgatanga"], ["Upper West", "Wa"], ["Bono", "Sunyani"], ["Bono East", "Techiman"], ["Ahafo", "Goaso"]
+        ]},
+        {"code": "GN", "name": "Guinée", "capital": "Conakry", "timezone": "Africa/Conakry", "phonePrefix": "+224", "phoneLengths": [9], "currency": "GNF", "languages": ["fr", "ff", "man", "sus"], "subregion": "west", "payments": ["orange_money", "mtn_momo", "paypal"], "regions": [
+            "Conakry", "Boké", "Kindia", "Mamou", "Labé", "Faranah", "Kankan", "Nzérékoré"
+        ]},
+        {"code": "GW", "name": "Guinée-Bissau", "capital": "Bissau", "timezone": "Africa/Bissau", "phonePrefix": "+245", "phoneLengths": [9], "currency": "XOF", "languages": ["pt", "pov"], "subregion": "west", "payments": ["orange_money", "mtn_momo", "paypal"], "regions": [
+            "Bissau", "Bafatá", ["Biombo", "Quinhámel"], ["Bolama-Bijagós", "Bolama"], "Cacheu", "Gabú", ["Oio", "Farim"], ["Quinara", "Buba"], ["Tombali", "Catió"]
+        ]},
+        {"code": "LR", "name": "Liberia", "capital": "Monrovia", "timezone": "Africa/Monrovia", "phonePrefix": "+231", "phoneLengths": [8, 9], "currency": "LRD", "languages": ["en"], "subregion": "west", "payments": ["mtn_momo", "orange_money", "paypal"], "regions": [
+            ["Montserrado", "Bensonville", null, ["Monrovia"]], ["Bomi", "Tubmanburg"], ["Bong", "Gbarnga"], ["Gbarpolu", "Bopolu"], ["Grand Bassa", "Buchanan"], ["Grand Cape Mount", "Robertsport"], ["Grand Gedeh", "Zwedru"], ["Grand Kru", "Barclayville"], ["Lofa", "Voinjama"], ["Margibi", "Kakata"], ["Maryland", "Harper"], ["Nimba", "Sanniquellie"], ["River Cess", "Cestos City"], ["River Gee", "Fish Town"], ["Sinoe", "Greenville"]
+        ]},
+        {"code": "ML", "name": "Mali", "capital": "Bamako", "timezone": "Africa/Bamako", "phonePrefix": "+223", "phoneLengths": [8], "currency": "XOF", "languages": ["fr", "bm", "ff", "son", "tmh", "ar"], "subregion": "west", "payments": ["orange_money", "moov_money", "wave", "paypal"], "regions": [
+            ["District de Bamako", "Bamako"], "Kayes", ["Koulikoro", "Koulikoro", null, ["Kati"]], "Sikasso", "Ségou", "Mopti", "Tombouctou", "Gao", "Kidal", ["Taoudénit", "Taoudéni"], "Ménaka", ["Nioro", "Nioro du Sahel"], "Kita", "Dioïla", "Nara", "Bougouni", "Koutiala", "San", "Douentza", "Bandiagara"
+        ]},
+        {"code": "MR", "name": "Mauritanie", "capital": "Nouakchott", "timezone": "Africa/Nouakchott", "phonePrefix": "+222", "phoneLengths": [8], "currency": "MRU", "languages": ["ar", "fr", "ff", "wo"], "subregion": "west", "payments": ["bankily", "masrvi", "sedad", "paypal"], "regions": [
+            ["Nouakchott-Ouest", "Tevragh Zeina", null, ["Nouakchott"]], ["Nouakchott-Nord", "Dar Naim"], ["Nouakchott-Sud", "Arafat"], ["Adrar", "Atar"], ["Assaba", "Kiffa"], ["Brakna", "Aleg"], ["Dakhlet Nouadhibou", "Nouadhibou"], ["Gorgol", "Kaédi"], ["Guidimaka", "Sélibaby"], ["Hodh Ech Chargui", "Néma"], ["Hodh El Gharbi", "Ayoun el-Atrous"], ["Inchiri", "Akjoujt"], ["Tagant", "Tidjikja"], ["Tiris Zemmour", "Zouérate"], ["Trarza", "Rosso"]
+        ]},
+        {"code": "NE", "name": "Niger", "capital": "Niamey", "timezone": "Africa/Niamey", "phonePrefix": "+227", "phoneLengths": [8], "currency": "XOF", "languages": ["fr", "ha", "dje", "ff", "tmh", "ar"], "subregion": "west", "payments": ["airtel_money", "moov_money", "zamani_cash", "paypal"], "regions": [
+            "Niamey", "Agadez", "Diffa", "Dosso", "Maradi", "Tahoua", "Tillabéri", "Zinder"
+        ]},
+        {"code": "NG", "name": "Nigeria", "capital": "Abuja", "timezone": "Africa/Lagos", "phonePrefix": "+234", "phoneLengths": [10], "currency": "NGN", "languages": ["en", "ha", "yo", "ig"], "subregion": "west", "payments": ["opay", "palmpay", "bank_transfer", "paypal"], "regions": [
+            ["Lagos", "Ikeja", null, ["Lagos"]], ["Territoire de la capitale fédérale", "Abuja"], ["Abia", "Umuahia"], ["Adamawa", "Yola"], ["Akwa Ibom", "Uyo"], ["Anambra", "Awka"], "Bauchi", ["Bayelsa", "Yenagoa"], ["Benue", "Makurdi"], ["Borno", "Maiduguri"], ["Cross River", "Calabar"], ["Delta", "Asaba"], ["Ebonyi", "Abakaliki"], ["Edo", "Benin City"], ["Ekiti", "Ado-Ekiti"], "Enugu", "Gombe", ["Imo", "Owerri"], ["Jigawa", "Dutse"], "Kaduna", "Kano", "Katsina", ["Kebbi", "Birnin Kebbi"], ["Kogi", "Lokoja"], ["Kwara", "Ilorin"], ["Nasarawa", "Lafia"], ["Niger", "Minna"], ["Ogun", "Abeokuta"], ["Ondo", "Akure"], ["Osun", "Osogbo"], ["Oyo", "Ibadan"], ["Plateau", "Jos"], ["Rivers", "Port Harcourt"], "Sokoto", ["Taraba", "Jalingo"], ["Yobe", "Damaturu"], ["Zamfara", "Gusau"]
+        ]},
+        {"code": "SN", "name": "Sénégal", "capital": "Dakar", "timezone": "Africa/Dakar", "phonePrefix": "+221", "phoneLengths": [9], "currency": "XOF", "languages": ["fr", "wo", "ff"], "subregion": "west", "payments": ["orange_money", "wave", "free_money", "paypal"], "regions": [
+            "Dakar", "Diourbel", "Fatick", "Kaffrine", "Kaolack", "Kédougou", "Kolda", "Louga", "Matam", "Saint-Louis", "Sédhiou", "Tambacounda", "Thiès", "Ziguinchor"
+        ]},
+        {"code": "SL", "name": "Sierra Leone", "capital": "Freetown", "timezone": "Africa/Freetown", "phonePrefix": "+232", "phoneLengths": [8], "currency": "SLE", "languages": ["en", "kri"], "subregion": "west", "payments": ["orange_money", "africell_money", "paypal"], "regions": [
+            ["Western Area", "Freetown"], ["Northern", "Makeni"], ["North West", "Port Loko"], ["Southern", "Bo"], ["Eastern", "Kenema"]
+        ]},
+        {"code": "TG", "name": "Togo", "capital": "Lomé", "timezone": "Africa/Lome", "phonePrefix": "+228", "phoneLengths": [8], "currency": "XOF", "languages": ["fr", "ee", "kbp"], "subregion": "west", "payments": ["flooz", "tmoney", "paypal"], "regions": [
+            ["Grand Lomé", "Lomé"], ["Maritime", "Tsévié"], ["Plateaux", "Atakpamé"], ["Centrale", "Sokodé"], "Kara", ["Savanes", "Dapaong"]
+        ]},
+
+        {"code": "AO", "name": "Angola", "capital": "Luanda", "timezone": "Africa/Luanda", "phonePrefix": "+244", "phoneLengths": [9], "currency": "AOA", "languages": ["pt"], "subregion": "central", "payments": ["multicaixa_express", "unitel_money", "paypal"], "regions": [
+            "Luanda", ["Bengo", "Caxito"], "Benguela", ["Bié", "Cuíto"], "Cabinda", ["Cuando", "Mavinga"], ["Cubango", "Menongue"], ["Cuanza Norte", "N'dalatando"], ["Cuanza Sul", "Sumbe"], ["Cunene", "Ondjiva"], "Huambo", ["Huíla", "Lubango"], ["Icolo e Bengo", "Catete"], ["Lunda Norte", "Dundo"], ["Lunda Sul", "Saurimo"], "Malanje", ["Moxico", "Luena"], ["Moxico Leste", "Cazombo"], ["Namibe", "Moçâmedes"], "Uíge", ["Zaire", "M'banza Kongo"]
+        ]},
+        {"code": "CM", "name": "Cameroun", "capital": "Yaoundé", "timezone": "Africa/Douala", "phonePrefix": "+237", "phoneLengths": [9], "currency": "XAF", "languages": ["fr", "en"], "subregion": "central", "payments": ["orange_money", "mtn_momo", "paypal"], "regions": [
+            ["Centre", "Yaoundé"], ["Littoral", "Douala"], ["Adamaoua", "Ngaoundéré"], ["Est", "Bertoua"], ["Extrême-Nord", "Maroua"], ["Nord", "Garoua"], ["Nord-Ouest", "Bamenda"], ["Ouest", "Bafoussam"], ["Sud", "Ebolowa"], ["Sud-Ouest", "Buéa"]
+        ]},
+        {"code": "CF", "name": "Centrafrique", "capital": "Bangui", "timezone": "Africa/Bangui", "phonePrefix": "+236", "phoneLengths": [8], "currency": "XAF", "languages": ["fr", "sg"], "subregion": "central", "payments": ["orange_money", "telecel_money"], "regions": [
+            "Bangui", ["Bamingui-Bangoran", "Ndélé"], ["Basse-Kotto", "Mobaye"], ["Haute-Kotto", "Bria"], ["Haut-Mbomou", "Obo"], ["Kémo", "Sibut"], ["Lobaye", "Mbaïki"], ["Mambéré-Kadéï", "Berbérati"], ["Mbomou", "Bangassou"], ["Nana-Grébizi", "Kaga-Bandoro"], ["Nana-Mambéré", "Bouar"], ["Ombella-M'Poko", "Bimbo"], ["Ouaka", "Bambari"], ["Ouham", "Bossangoa"], ["Ouham-Pendé", "Bozoum"], ["Sangha-Mbaéré", "Nola"], ["Vakaga", "Birao"]
+        ]},
+        {"code": "CG", "name": "Congo", "capital": "Brazzaville", "timezone": "Africa/Brazzaville", "phonePrefix": "+242", "phoneLengths": [9], "currency": "XAF", "languages": ["fr", "ln", "kg"], "subregion": "central", "payments": ["mtn_momo", "airtel_money", "paypal"], "regions": [
+            "Brazzaville", "Pointe-Noire", ["Bouenza", "Madingou"], ["Cuvette", "Owando"], ["Cuvette-Ouest", "Ewo"], ["Kouilou", "Hinda"], ["Lékoumou", "Sibiti"], ["Likouala", "Impfondo"], ["Niari", "Dolisie"], ["Plateaux", "Djambala"], ["Pool", "Kinkala"], ["Sangha", "Ouésso"]
+        ]},
+        {"code": "CD", "name": "RD Congo", "capital": "Kinshasa", "timezone": "Africa/Kinshasa", "phonePrefix": "+243", "phoneLengths": [9], "currency": "CDF", "languages": ["fr", "ln", "sw", "kg", "lua"], "subregion": "central", "payments": ["mpesa", "orange_money", "airtel_money", "paypal"], "regions": [
+            "Kinshasa", ["Kongo-Central", "Matadi"], ["Kwango", "Kenge"], ["Kwilu", "Bandundu"], ["Maï-Ndombe", "Inongo"], ["Kasaï", "Tshikapa"], ["Kasaï-Central", "Kananga"], ["Kasaï-Oriental", "Mbuji-Mayi"], ["Lomami", "Kabinda"], ["Sankuru", "Lusambo"], ["Maniema", "Kindu"], ["Sud-Kivu", "Bukavu"], ["Nord-Kivu", "Goma"], ["Ituri", "Bunia"], ["Haut-Uele", "Isiro"], ["Tshopo", "Kisangani"], ["Bas-Uele", "Buta"], ["Nord-Ubangi", "Gbadolite"], ["Mongala", "Lisala"], ["Sud-Ubangi", "Gemena"], ["Équateur", "Mbandaka"], ["Tshuapa", "Boende"], ["Tanganyika", "Kalemie"], ["Haut-Lomami", "Kamina"], ["Lualaba", "Kolwezi"], ["Haut-Katanga", "Lubumbashi"]
+        ]},
+        {"code": "GA", "name": "Gabon", "capital": "Libreville", "timezone": "Africa/Libreville", "phonePrefix": "+241", "phoneLengths": [8], "currency": "XAF", "languages": ["fr"], "subregion": "central", "payments": ["airtel_money", "moov_money", "paypal"], "regions": [
+            ["Estuaire", "Libreville"], ["Haut-Ogooué", "Franceville"], ["Moyen-Ogooué", "Lambaréné"], ["Ngounié", "Mouila"], ["Nyanga", "Tchibanga"], ["Ogooué-Ivindo", "Makokou"], ["Ogooué-Lolo", "Koulamoutou"], ["Ogooué-Maritime", "Port-Gentil"], ["Woleu-Ntem", "Oyem"]
+        ]},
+        {"code": "GQ", "name": "Guinée équatoriale", "capital": "Malabo", "timezone": "Africa/Malabo", "phonePrefix": "+240", "phoneLengths": [9], "currency": "XAF", "languages": ["es", "fr", "pt"], "subregion": "central", "payments": ["bank_transfer", "paypal"], "regions": [
+            ["Bioko Norte", "Malabo"], ["Bioko Sur", "Luba"], ["Annobón", "San Antonio de Palé"], ["Centro Sur", "Evinayong"], ["Djibloho", "Ciudad de la Paz"], ["Kié-Ntem", "Ebebiyín"], ["Litoral", "Bata"], ["Wele-Nzas", "Mongomo"]
+        ]},
+        {"code": "ST", "name": "São Tomé-et-Príncipe", "capital": "São Tomé", "timezone": "Africa/Sao_Tome", "phonePrefix": "+239", "phoneLengths": [7], "currency": "STN", "languages": ["pt"], "subregion": "central", "payments": ["bank_transfer", "paypal"], "regions": [
+            ["Água Grande", "São Tomé"], ["Cantagalo", "Santana"], ["Caué", "São João dos Angolares"], ["Lembá", "Neves"], ["Lobata", "Guadalupe"], ["Mé-Zóchi", "Trindade"], ["Príncipe", "Santo António"]
+        ]},
+        {"code": "TD", "name": "Tchad", "capital": "N'Djaména", "timezone": "Africa/Ndjamena", "phonePrefix": "+235", "phoneLengths": [8], "currency": "XAF", "languages": ["fr", "ar"], "subregion": "central", "payments": ["airtel_money", "moov_money", "paypal"], "regions": [
+            "N'Djaména", ["Batha", "Ati"], ["Barh El Gazel", "Moussoro"], ["Borkou", "Faya-Largeau"], ["Chari-Baguirmi", "Massenya"], ["Ennedi-Est", "Amdjarass"], ["Ennedi-Ouest", "Fada"], ["Guéra", "Mongo"], ["Hadjer-Lamis", "Massakory"], ["Kanem", "Mao"], ["Lac", "Bol"], ["Logone Occidental", "Moundou"], ["Logone Oriental", "Doba"], ["Mandoul", "Koumra"], ["Mayo-Kebbi Est", "Bongor"], ["Mayo-Kebbi Ouest", "Pala"], ["Moyen-Chari", "Sarh"], ["Ouaddaï", "Abéché"], ["Salamat", "Am Timan"], ["Sila", "Goz Beïda"], ["Tandjilé", "Laï"], ["Tibesti", "Bardaï"], ["Wadi Fira", "Biltine"]
+        ]},
+
+        {"code": "BI", "name": "Burundi", "capital": "Gitega", "timezone": "Africa/Bujumbura", "phonePrefix": "+257", "phoneLengths": [8], "currency": "BIF", "languages": ["rn", "fr", "en", "sw"], "subregion": "east", "payments": ["lumicash", "ecocash", "paypal"], "regions": [
+            "Bujumbura", "Gitega", ["Buhumuza", "Cankuzo"], ["Burunga", "Rumonge"], ["Butanyerera", "Ngozi"]
+        ]},
+        {"code": "KM", "name": "Comores", "capital": "Moroni", "timezone": "Indian/Comoro", "phonePrefix": "+269", "phoneLengths": [7], "currency": "KMF", "languages": ["ar", "fr", "zdj"], "subregion": "east", "payments": ["huri_money", "mvola", "paypal"], "regions": [
+            ["Grande Comore", "Moroni"], ["Anjouan", "Mutsamudu"], ["Mohéli", "Fomboni"]
+        ]},
+        {"code": "DJ", "name": "Djibouti", "capital": "Djibouti", "timezone": "Africa/Djibouti", "phonePrefix": "+253", "phoneLengths": [8], "currency": "DJF", "languages": ["fr", "ar", "so", "aa"], "subregion": "east", "payments": ["d_money", "waafi", "paypal"], "regions": [
+            "Djibouti", "Ali Sabieh", "Arta", "Dikhil", "Obock", "Tadjourah"
+        ]},
+        {"code": "ER", "name": "Érythrée", "capital": "Asmara", "timezone": "Africa/Asmara", "phonePrefix": "+291", "phoneLengths": [7], "currency": "ERN", "languages": ["ti", "ar", "en"], "subregion": "east", "payments": ["bank_transfer"], "regions": [
+            ["Maekel", "Asmara"], ["Anseba", "Keren"], ["Gash-Barka", "Barentu"], ["Debub", "Mendefera"], ["Semien-Keih-Bahri", "Massaoua"], ["Debub-Keih-Bahri", "Assab"]
+        ]},
+        {"code": "ET", "name": "Éthiopie", "capital": "Addis-Abeba", "timezone": "Africa/Addis_Ababa", "phonePrefix": "+251", "phoneLengths": [9], "currency": "ETB", "languages": ["am", "om", "ti", "so"], "subregion": "east", "payments": ["telebirr", "mpesa", "paypal"], "regions": [
+            "Addis-Abeba", "Dire Dawa", ["Afar", "Semera"], ["Amhara", "Bahir Dar"], ["Benishangul-Gumuz", "Asosa"], ["Éthiopie centrale", "Hosaena"], "Gambela", "Harar", ["Oromia", "Adama"], ["Sidama", "Hawassa"], ["Somali", "Jijiga"], ["Éthiopie du Sud", "Wolaita Sodo"], ["Éthiopie du Sud-Ouest", "Bonga"], ["Tigré", "Mekele"]
+        ]},
+        {"code": "KE", "name": "Kenya", "capital": "Nairobi", "timezone": "Africa/Nairobi", "phonePrefix": "+254", "phoneLengths": [9], "currency": "KES", "languages": ["sw", "en"], "subregion": "east", "payments": ["mpesa", "airtel_money", "paypal"], "regions": [
+            "Nairobi", "Mombasa", "Kwale", "Kilifi", ["Tana River", "Hola"], "Lamu", ["Taita-Taveta", "Wundanyi"], "Garissa", "Wajir", "Mandera", "Marsabit", "Isiolo", "Meru", ["Tharaka-Nithi", "Kathwana"], "Embu", "Kitui", "Machakos", ["Makueni", "Wote"], ["Nyandarua", "Ol Kalou"], "Nyeri", ["Kirinyaga", "Kerugoya"], "Murang'a", "Kiambu", ["Turkana", "Lodwar"], ["West Pokot", "Kapenguria"], ["Samburu", "Maralal"], ["Trans-Nzoia", "Kitale"], ["Uasin Gishu", "Eldoret"], ["Elgeyo-Marakwet", "Iten"], ["Nandi", "Kapsabet"], ["Baringo", "Kabarnet"], ["Laikipia", "Rumuruti"], "Nakuru", "Narok", "Kajiado", "Kericho", "Bomet", "Kakamega", ["Vihiga", "Mbale"], "Bungoma", "Busia", "Siaya", "Kisumu", "Homa Bay", "Migori", "Kisii", "Nyamira"
+        ]},
+        {"code": "MG", "name": "Madagascar", "capital": "Antananarivo", "timezone": "Indian/Antananarivo", "phonePrefix": "+261", "phoneLengths": [9], "currency": "MGA", "languages": ["mg", "fr"], "subregion": "east", "payments": ["mvola", "orange_money", "airtel_money", "paypal"], "regions": [
+            ["Analamanga", "Antananarivo"], ["Alaotra-Mangoro", "Ambatondrazaka"], ["Amoron'i Mania", "Ambositra"], ["Analanjirofo", "Fénérive-Est"], ["Androy", "Ambovombe"], ["Anosy", "Tôlanaro"], ["Atsimo-Andrefana", "Toliara"], ["Atsimo-Atsinanana", "Farafangana"], ["Atsinanana", "Toamasina"], ["Betsiboka", "Maevatanana"], ["Boeny", "Mahajanga"], ["Bongolava", "Tsiroanomandidy"], ["Diana", "Antsiranana"], ["Fitovinany", "Manakara"], ["Haute Matsiatra", "Fianarantsoa"], ["Ihorombe", "Ihosy"], ["Itasy", "Miarinarivo"], ["Melaky", "Maintirano"], ["Menabe", "Morondava"], ["Sava", "Sambava"], ["Sofia", "Antsohihy"], ["Vakinankaratra", "Antsirabe"], ["Vatovavy", "Mananjary"]
+        ]},
+        {"code": "MW", "name": "Malawi", "capital": "Lilongwe", "timezone": "Africa/Blantyre", "phonePrefix": "+265", "phoneLengths": [9], "currency": "MWK", "languages": ["en", "ny"], "subregion": "east", "payments": ["airtel_money", "mpamba", "paypal"], "regions": [
+            ["Région centrale", "Lilongwe"], ["Région du Nord", "Mzuzu"], ["Région du Sud", "Blantyre"]
+        ]},
+        {"code": "MU", "name": "Maurice", "capital": "Port-Louis", "timezone": "Indian/Mauritius", "phonePrefix": "+230", "phoneLengths": [8], "currency": "MUR", "languages": ["en", "fr", "mfe"], "subregion": "east", "payments": ["juice", "myt_money", "paypal"], "regions": [
+            "Port-Louis", ["Pamplemousses", "Pamplemousses"], ["Rivière du Rempart", "Mapou"], ["Flacq", "Centre de Flacq"], ["Grand Port", "Mahébourg"], ["Savanne", "Souillac"], ["Plaines Wilhems", "Rose-Hill"], ["Moka", "Moka"], ["Rivière Noire", "Bambous"], ["Rodrigues", "Port Mathurin"]
+        ]},
+        {"code": "MZ", "name": "Mozambique", "capital": "Maputo", "timezone": "Africa/Maputo", "phonePrefix": "+258", "phoneLengths": [9], "currency": "MZN", "languages": ["pt"], "subregion": "east", "payments": ["mpesa", "emola", "mkesh", "paypal"], "regions": [
+            ["Maputo (ville)", "Maputo"], ["Maputo (province)", "Matola"], ["Gaza", "Xai-Xai"], "Inhambane", ["Sofala", "Beira"], ["Manica", "Chimoio"], "Tete", ["Zambézie", "Quelimane"], "Nampula", ["Niassa", "Lichinga"], ["Cabo Delgado", "Pemba"]
+        ]},
+        {"code": "UG", "name": "Ouganda", "capital": "Kampala", "timezone": "Africa/Kampala", "phonePrefix": "+256", "phoneLengths": [9], "currency": "UGX", "languages": ["en", "sw", "lg"], "subregion": "east", "payments": ["mtn_momo", "airtel_money", "paypal"], "regions": [
+            ["Région centrale", "Kampala"], ["Région de l'Est", "Jinja"], ["Région du Nord", "Gulu"], ["Région de l'Ouest", "Mbarara"]
+        ]},
+        {"code": "RW", "name": "Rwanda", "capital": "Kigali", "timezone": "Africa/Kigali", "phonePrefix": "+250", "phoneLengths": [9], "currency": "RWF", "languages": ["rw", "en", "fr", "sw"], "subregion": "east", "payments": ["mtn_momo", "airtel_money", "paypal"], "regions": [
+            "Kigali", ["Province du Nord", "Musanze"], ["Province du Sud", "Nyanza"], ["Province de l'Est", "Rwamagana"], ["Province de l'Ouest", "Karongi"]
+        ]},
+        {"code": "SC", "name": "Seychelles", "capital": "Victoria", "timezone": "Indian/Mahe", "phonePrefix": "+248", "phoneLengths": [7], "currency": "SCR", "languages": ["en", "fr", "crs"], "subregion": "east", "payments": ["bank_transfer", "paypal"], "regions": [
+            ["Mahé", "Victoria"], ["Praslin", "Baie Sainte-Anne"], ["La Digue", "La Passe"]
+        ]},
+        {"code": "SO", "name": "Somalie", "capital": "Mogadiscio", "timezone": "Africa/Mogadishu", "phonePrefix": "+252", "phoneLengths": [8, 9], "currency": "SOS", "languages": ["so", "ar"], "subregion": "east", "payments": ["evc_plus", "zaad", "sahal"], "regions": [
+            ["Banaadir", "Mogadiscio"], ["Awdal", "Borama"], ["Woqooyi Galbeed", "Hargeisa"], ["Togdheer", "Burao"], ["Sanaag", "Erigavo"], ["Sool", "Las Anod"], ["Bari", "Bosaso"], ["Nugaal", "Garoowe"], ["Mudug", "Galkayo"], ["Galguduud", "Dusmareb"], ["Hiiraan", "Beledweyne"], ["Shabeellaha Dhexe", "Jowhar"], ["Shabeellaha Hoose", "Merca"], ["Bay", "Baidoa"], ["Bakool", "Hudur"], ["Gedo", "Garbahaarey"], ["Jubbada Dhexe", "Bu'aale"], ["Jubbada Hoose", "Kismayo"]
+        ]},
+        {"code": "SS", "name": "Soudan du Sud", "capital": "Djouba", "timezone": "Africa/Juba", "phonePrefix": "+211", "phoneLengths": [9], "currency": "SSP", "languages": ["en", "ar"], "subregion": "east", "payments": ["mgurush", "mtn_momo"], "regions": [
+            ["Équatoria-Central", "Djouba"], ["Équatoria-Occidental", "Yambio"], ["Équatoria-Oriental", "Torit"], ["Jonglei", "Bor"], ["Unité", "Bentiu"], ["Haut-Nil", "Malakal"], ["Bahr el-Ghazal du Nord", "Aweil"], ["Bahr el-Ghazal occidental", "Wau"], ["Lacs", "Rumbek"], ["Warrap", "Kuajok"], "Abiye", "Pibor", ["Ruweng", "Pariang"]
+        ]},
+        {"code": "TZ", "name": "Tanzanie", "capital": "Dodoma", "timezone": "Africa/Dar_es_Salaam", "phonePrefix": "+255", "phoneLengths": [9], "currency": "TZS", "languages": ["sw", "en"], "subregion": "east", "payments": ["mpesa", "airtel_money", "mixx_by_yas", "halopesa", "paypal"], "regions": [
+            "Dar es Salaam", "Dodoma", "Arusha", "Geita", "Iringa", ["Kagera", "Bukoba"], ["Katavi", "Mpanda"], "Kigoma", ["Kilimandjaro", "Moshi"], "Lindi", ["Manyara", "Babati"], ["Mara", "Musoma"], "Mbeya", "Morogoro", "Mtwara", "Mwanza", "Njombe", ["Pwani", "Kibaha"], ["Rukwa", "Sumbawanga"], ["Ruvuma", "Songea"], "Shinyanga", ["Simiyu", "Bariadi"], "Singida", ["Songwe", "Vwawa"], "Tabora", "Tanga", ["Zanzibar Nord", "Mkokotoni"], ["Zanzibar Sud", "Koani"], ["Zanzibar Ouest-Urbain", "Zanzibar"], ["Pemba Nord", "Wete"], ["Pemba Sud", "Chake-Chake"]
+        ]},
+        {"code": "ZM", "name": "Zambie", "capital": "Lusaka", "timezone": "Africa/Lusaka", "phonePrefix": "+260", "phoneLengths": [9], "currency": "ZMW", "languages": ["en", "bem", "ny"], "subregion": "east", "payments": ["airtel_money", "mtn_momo", "zamtel_kwacha", "paypal"], "regions": [
+            "Lusaka", ["Central", "Kabwe"], ["Copperbelt", "Ndola"], ["Eastern", "Chipata"], ["Luapula", "Mansa"], ["Muchinga", "Chinsali"], ["Northern", "Kasama"], ["North-Western", "Solwezi"], ["Southern", "Choma"], ["Western", "Mongu"]
+        ]},
+        {"code": "ZW", "name": "Zimbabwe", "capital": "Harare", "timezone": "Africa/Harare", "phonePrefix": "+263", "phoneLengths": [9], "currency": "ZWG", "languages": ["en", "sn", "nd"], "subregion": "east", "payments": ["ecocash", "onemoney", "paypal"], "regions": [
+            "Harare", "Bulawayo", ["Manicaland", "Mutare"], ["Mashonaland Central", "Bindura"], ["Mashonaland East", "Marondera"], ["Mashonaland West", "Chinhoyi"], "Masvingo", ["Matabeleland North", "Lupane"], ["Matabeleland South", "Gwanda"], ["Midlands", "Gweru"]
+        ]},
+
+        {"code": "ZA", "name": "Afrique du Sud", "capital": "Pretoria", "timezone": "Africa/Johannesburg", "phonePrefix": "+27", "phoneLengths": [9], "currency": "ZAR", "languages": ["en", "zu", "xh", "af"], "subregion": "southern", "payments": ["bank_transfer", "paypal"], "regions": [
+            ["Gauteng", "Johannesburg", null, ["Pretoria"]], ["Cap-Occidental", "Le Cap"], ["KwaZulu-Natal", "Pietermaritzburg", null, ["Durban"]], ["Cap-Oriental", "Bhisho"], ["État-Libre", "Bloemfontein"], ["Limpopo", "Polokwane"], ["Mpumalanga", "Mbombela"], ["Nord-Ouest", "Mahikeng"], ["Cap-Nord", "Kimberley"]
+        ]},
+        {"code": "BW", "name": "Botswana", "capital": "Gaborone", "timezone": "Africa/Gaborone", "phonePrefix": "+267", "phoneLengths": [8], "currency": "BWP", "languages": ["en", "tn"], "subregion": "southern", "payments": ["orange_money", "myzaka", "paypal"], "regions": [
+            ["South-East", "Ramotswa", null, ["Gaborone"]], ["Central", "Serowe"], "Ghanzi", ["Kgalagadi", "Tsabong"], ["Kgatleng", "Mochudi"], ["Kweneng", "Molepolole"], ["North-East", "Francistown"], ["North-West", "Maun"], ["Southern", "Kanye"], ["Chobe", "Kasane"]
+        ]},
+        {"code": "SZ", "name": "Eswatini", "capital": "Mbabane", "timezone": "Africa/Mbabane", "phonePrefix": "+268", "phoneLengths": [8], "currency": "SZL", "languages": ["en", "ss"], "subregion": "southern", "payments": ["mtn_momo", "paypal"], "regions": [
+            ["Hhohho", "Mbabane"], "Manzini", ["Lubombo", "Siteki"], ["Shiselweni", "Nhlangano"]
+        ]},
+        {"code": "LS", "name": "Lesotho", "capital": "Maseru", "timezone": "Africa/Maseru", "phonePrefix": "+266", "phoneLengths": [8], "currency": "LSL", "languages": ["en", "st"], "subregion": "southern", "payments": ["mpesa", "ecocash", "paypal"], "regions": [
+            "Maseru", ["Berea", "Teyateyaneng"], ["Leribe", "Hlotse"], "Butha-Buthe", "Mokhotlong", "Thaba-Tseka", "Qacha's Nek", "Quthing", "Mohale's Hoek", "Mafeteng"
+        ]},
+        {"code": "NA", "name": "Namibie", "capital": "Windhoek", "timezone": "Africa/Windhoek", "phonePrefix": "+264", "phoneLengths": [9], "currency": "NAD", "languages": ["en", "af", "ng"], "subregion": "southern", "payments": ["bank_transfer", "paypal"], "regions": [
+            ["Khomas", "Windhoek"], ["Erongo", "Swakopmund"], ["Hardap", "Mariental"], ["ǁKaras", "Keetmanshoop"], ["Kavango East", "Rundu"], ["Kavango West", "Nkurenkuru"], ["Kunene", "Opuwo"], ["Ohangwena", "Eenhana"], ["Omaheke", "Gobabis"], ["Omusati", "Outapi"], ["Oshana", "Oshakati"], ["Oshikoto", "Omuthiya"], ["Otjozondjupa", "Otjiwarongo"], ["Zambezi", "Katima Mulilo"]
+        ]}
+    ],
+    "coordinates": {
+        "ML:Bamako": [12.6392, -8.0029], "ML:Kayes": [14.4469, -11.4445], "ML:Sikasso": [11.3176, -5.6665], "ML:Ségou": [13.4317, -6.2157], "ML:Mopti": [14.4843, -4.183], "ML:Koulikoro": [12.8627, -7.5598], "ML:Koutiala": [12.3917, -5.4642], "ML:Kati": [12.7441, -8.0726], "ML:Gao": [16.2717, -0.0447],
+        "BF:Ouagadougou": [12.3714, -1.5197], "BF:Bobo-Dioulasso": [11.1771, -4.2979], "BF:Koudougou": [12.2526, -2.3627], "BF:Ouahigouya": [13.5828, -2.4216], "BF:Banfora": [10.6333, -4.7667], "BF:Kaya": [13.0917, -1.0844], "BF:Fada N'Gourma": [12.0617, 0.3583], "BF:Tenkodogo": [11.78, -0.3697],
+        "NE:Niamey": [13.5116, 2.1254], "NE:Maradi": [13.5, 7.1017], "NE:Zinder": [13.8053, 8.9881], "NE:Tahoua": [14.8888, 5.2692], "NE:Dosso": [13.049, 3.1937], "NE:Agadez": [16.9742, 7.9865],
+        "SN:Dakar": [14.6928, -17.4467], "CI:Abidjan": [5.36, -4.0083], "NG:Lagos": [6.5244, 3.3792], "NG:Abuja": [9.0765, 7.3986], "GH:Accra": [5.6037, -0.187], "BJ:Cotonou": [6.3703, 2.3912], "TG:Lomé": [6.1256, 1.2254], "GN:Conakry": [9.6412, -13.5784],
+        "KE:Nairobi": [-1.2921, 36.8219], "ET:Addis-Abeba": [9.03, 38.74], "TZ:Dar es Salaam": [-6.7924, 39.2083], "UG:Kampala": [0.3476, 32.5825], "RW:Kigali": [-1.9441, 30.0619],
+        "MA:Casablanca": [33.5731, -7.5898], "MA:Rabat": [34.0209, -6.8416], "DZ:Alger": [36.7538, 3.0588], "TN:Tunis": [36.8065, 10.1815], "EG:Le Caire": [30.0444, 31.2357],
+        "CM:Yaoundé": [3.848, 11.5021], "CM:Douala": [4.0511, 9.7679], "CD:Kinshasa": [-4.4419, 15.2663], "GA:Libreville": [0.4162, 9.4673], "AO:Luanda": [-8.839, 13.2894],
+        "ZA:Johannesburg": [-26.2041, 28.0473], "ZA:Le Cap": [-33.9249, 18.4241], "BW:Gaborone": [-24.6282, 25.9231], "NA:Windhoek": [-22.5609, 17.0658]
+    }
+}

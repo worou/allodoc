@@ -6,9 +6,11 @@ import { Footer } from "./components/Footer";
 import { Header } from "./components/Header";
 import { OfflineBanner } from "./components/OfflineBanner";
 import { ErrorState, Loading } from "./components/States";
+import { useI18n } from "./lib/i18n";
 import Home from "./pages/Home";
 
 // Pages chargées à la demande : le premier écran reste léger sur réseau 3G.
+const Africa = lazy(() => import("./pages/Africa"));
 const Country = lazy(() => import("./pages/Country"));
 const Search = lazy(() => import("./pages/Search"));
 const Practitioner = lazy(() => import("./pages/Practitioner"));
@@ -31,11 +33,14 @@ class ErrorBoundary extends Component<{ children: ReactNode }, { failed: boolean
   }
 
   render() {
-    if (this.state.failed) {
-      return <ErrorState message="Cette page n'a pas pu s'afficher. Vérifiez votre connexion." onRetry={() => window.location.reload()} />;
-    }
+    if (this.state.failed) return <PageError />;
     return this.props.children;
   }
+}
+
+function PageError() {
+  const { t } = useI18n();
+  return <ErrorState message={t("error.page")} onRetry={() => window.location.reload()} />;
 }
 
 function Layout() {
@@ -87,6 +92,8 @@ export default function App() {
             <Route path="pro" element={<Pro />} />
             <Route path="admin" element={<Admin />} />
             <Route path="application" element={<AppDownload />} />
+            <Route path="afrique" element={<Africa />} />
+            <Route path="afrique/:subregion" element={<Africa />} />
             <Route path=":country" element={<Country />} />
             <Route path="*" element={<NotFound />} />
           </Route>

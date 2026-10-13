@@ -1,4 +1,28 @@
-export type CountryCode = "ML" | "BF" | "NE";
+/** Code ISO 3166-1 alpha-2 d'un des 55 pays et territoires africains du référentiel (ML, SN, KE...). */
+export type CountryCode = string;
+
+/** Les cinq sous-régions africaines. */
+export type SubregionCode = "north" | "west" | "central" | "east" | "southern";
+
+/** Pays du référentiel (GET /api/countries). */
+export interface Country {
+  code: CountryCode;
+  name: string;
+  capital: string;
+  subregion: SubregionCode;
+  phonePrefix: string;
+  phoneLengths: number[];
+  currency: string;
+  timezone: string;
+}
+
+/** Sous-région et ses pays (GET /api/subregions). */
+export interface SubregionOverview {
+  code: SubregionCode;
+  name: string;
+  practitionerCount: number;
+  countries: { code: CountryCode; name: string; capital: string; regionCount: number; practitionerCount: number }[];
+}
 
 export interface Slot {
   start: string;
@@ -22,7 +46,7 @@ export interface Facility {
   longitude: number | null;
   city: string;
   region: { slug: string; name: string };
-  country: { code: CountryCode; name: string };
+  country: { code: CountryCode; name: string; subregion: SubregionCode; currency: string };
   timezone: string;
 }
 
@@ -36,6 +60,8 @@ export interface PractitionerSummary {
   gender: "M" | "F";
   photoUrl: string | null;
   fee: number;
+  /** Monnaie du pays du lieu de consultation (XOF, NGN, KES...). */
+  currency: string;
   teleconsultation: boolean;
   acceptsNewPatients: boolean;
   languages: { code: string; name: string }[];
@@ -90,6 +116,8 @@ export interface CountryOverview {
     capital: string;
     timezone: string;
     phonePrefix: string;
+    currency: string;
+    subregion: SubregionCode;
     languages: string[];
   };
   practitionerCount: number;
@@ -163,6 +191,8 @@ export interface Subscription {
   status: "pending" | "paid" | "cancelled";
   paymentMethod: string;
   paymentMethodLabel: string;
+  /** Montant facturé en dollars (paiement PayPal), fixé à la création de la commande PayPal. */
+  amountUsd: number | null;
   transactionId: string | null;
   startsAt: string | null;
   endsAt: string | null;
@@ -178,9 +208,21 @@ export interface SubscriptionStatusResponse {
   publishedUntil: string | null;
   daysLeft: number;
   plans: SubscriptionPlan[];
+  /** Moyens de paiement proposés dans le pays du praticien. */
   methods: { code: string; label: string }[];
-  paymentAccount: Record<string, string>;
+  /** Numéro de réception par moyen (null : communiqué par l'équipe AlloDoc) et titulaire ("holder"). */
+  paymentAccount: Record<string, string | null>;
+  /** PayPal configuré côté serveur : identifiant public pour le bouton de paiement. */
+  paypal: { clientId: string; currency: "USD" } | null;
   pending: Subscription | null;
   history: Subscription[];
   canSimulatePayment: boolean;
+}
+
+/** Taux de change (GET /api/exchange-rates) : unités de chaque monnaie pour 1 dollar US. */
+export interface ExchangeRates {
+  base: "USD";
+  rates: Record<string, number>;
+  updatedAt: string | null;
+  source: string;
 }

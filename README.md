@@ -1,6 +1,22 @@
-# AlloDoc : prise de rendez-vous médicaux (Mali, Burkina Faso, Niger)
+# AlloDoc : prise de rendez-vous médicaux dans toute l'Afrique
 
-MVP inspiré de l'ergonomie de Doctolib, avec une identité visuelle sahélienne : indigo, terre cuite, ocre, vert, motifs bogolan et kente.
+MVP inspiré de l'ergonomie de Doctolib, ouvert aux **55 pays et territoires africains**, répartis en **5 sous-régions** (Afrique du Nord, de l'Ouest, centrale, de l'Est, australe), chacun décliné en régions. Identité visuelle panafricaine : vert forêt, rouge latérite, or, une couleur par sous-région, motifs kente et bogolan, et la carte de l'Afrique en fond d'écran.
+
+### Sous-régions, pays et régions
+
+| Sous-région | Pays |
+|---|---|
+| Afrique du Nord | Algérie, Égypte, Libye, Maroc, Soudan, Tunisie, Sahara occidental |
+| Afrique de l'Ouest | Bénin, Burkina Faso, Cap-Vert, Côte d'Ivoire, Gambie, Ghana, Guinée, Guinée-Bissau, Liberia, Mali, Mauritanie, Niger, Nigeria, Sénégal, Sierra Leone, Togo |
+| Afrique centrale | Angola, Cameroun, Centrafrique, Congo, RD Congo, Gabon, Guinée équatoriale, São Tomé-et-Príncipe, Tchad |
+| Afrique de l'Est | Burundi, Comores, Djibouti, Érythrée, Éthiopie, Kenya, Madagascar, Malawi, Maurice, Mozambique, Ouganda, Rwanda, Seychelles, Somalie, Soudan du Sud, Tanzanie, Zambie, Zimbabwe |
+| Afrique australe | Afrique du Sud, Botswana, Eswatini, Lesotho, Namibie |
+
+- **Référentiel** : `backend/config/reference/africa.json`. Pour chaque pays : sous-région, capitale, fuseau horaire, indicatif et longueurs du numéro national, monnaie, langues, et premier niveau administratif (775 régions avec leur chef-lieu). Le fichier est validé au chargement : 55 codes uniques, fuseaux existants, identifiants de région distincts.
+- **Onglet « Afrique »** (`/afrique/nord`, `/ouest`, `/centre`, `/est`, `/australe`) : onglets des sous-régions, carte interactive et pays, chacun menant à sa page (`/sn`, `/ke`...) avec ses régions et ses praticiens.
+- **Carte** : générée depuis Natural Earth par `node frontend/scripts/build-africa-map.mjs`. Ce script produit `src/assets/africa-map.json`, `public/africa-map.svg` et `public/africa-mask.svg`.
+- **Téléphones** : normalisation E.164 pour les 55 pays, avec retrait du 0 initial. Le Sahara occidental partage l'indicatif +212 avec le Maroc.
+- **Tarifs** : affichés dans la monnaie du pays du praticien (FCFA, ₦, KSh, R...). Les abonnements praticiens restent en FCFA.
 
 | Dossier | Contenu |
 |---|---|
@@ -58,6 +74,7 @@ Production : **http://allodoc.teranga.re**. Hébergement mutualisé o2switch (cP
    - envoyer `allodoc-api.tar.gz` dans `/home/rise9482` et `www.tar.gz` dans la racine web, puis **Extraire** chacun ;
    - **sans écraser** `allodoc-api/.env.local`.
 4. Si une version modifie la base, appliquer la migration : SSH, ou bien script ponctuel sur le modèle de `deploy/server/install-db.php`.
+   **Extension à toute l'Afrique** : appliquer la migration `Version20261011103305` (sous-région et longueurs de numéro), puis lancer `php bin/console app:install`. Sur une base déjà remplie, cette commande ajoute les 52 pays, leurs régions et leurs chefs-lieux manquants, sans rien supprimer, et peut être relancée sans risque.
 5. Vider `allodoc-api/var/cache/prod` pour que le nouveau code soit pris en compte.
 
 **Première installation de la base** : `deploy/server/install-db.php`. Le script importe `allodoc-api/var/install/database.sql`, uniquement dans une base vide. Il est protégé par une clé aléatoire et s'efface après usage.
@@ -91,7 +108,7 @@ Aucun mot de passe. Quatre façons de se connecter, et le compte est créé auto
 
 | Mode | Fonctionnement |
 |---|---|
-| Code par SMS | Code à 6 chiffres envoyé au numéro (Mali +223, Burkina Faso +226, Niger +227) |
+| Code par SMS | Code à 6 chiffres envoyé au numéro, dans les 55 pays africains (indicatif choisi dans la liste, groupée par sous-région) |
 | Code par email | Code à 6 chiffres envoyé par email. L'adresse devient vérifiée. |
 | Google | Fonctionne avec tous les comptes Gmail / Google |
 | GitHub | Utilise l'adresse principale vérifiée du compte GitHub |
@@ -175,15 +192,33 @@ Un praticien n'est **visible et réservable que s'il est vérifié par l'adminis
 | Semestriel | 6 000 FCFA | 6 mois |
 | Annuel | 10 000 FCFA (soit 833 FCFA / mois, 2 000 FCFA d'économie) | 12 mois |
 
+Les prix sont affichés avec leur **équivalent en dollars US** au taux du jour (par exemple 10 000 FCFA ≈ 17,09 $US). Les taux viennent de `open.er-api.com` (gratuit, sans clé), sont mis en cache 12 heures et exposés par `GET /api/exchange-rates`. Si ce service est injoignable, l'application utilise les taux de secours de `services.yaml` (`app.usd_fallback_rates`).
+
+**Moyens de paiement par pays.** Chaque pays propose ses opérateurs, listés dans `backend/config/reference/africa.json` (clé `payments`) :
+
+| Exemples | Moyens proposés |
+|---|---|
+| Mali | Orange Money, Moov Money, Wave, PayPal |
+| Sénégal | Orange Money, Wave, Free Money, PayPal |
+| Côte d'Ivoire | Orange Money, MTN Mobile Money, Moov Money, Wave, PayPal |
+| Kenya | M-Pesa, Airtel Money, PayPal |
+| Nigeria | OPay, PalmPay, virement bancaire, PayPal |
+| Égypte | Vodafone Cash, InstaPay, Fawry, PayPal |
+| Afrique du Sud | Virement bancaire, PayPal |
+
+PayPal n'est pas proposé là où il est indisponible ou sous sanctions : Soudan, Soudan du Sud, Libye, Érythrée, Somalie, Centrafrique.
+
 **Déroulement**
-1. Dans son espace (onglet **Abonnement**), le praticien choisit une formule. Le paiement se fait **uniquement par mobile money, depuis l'application** : aucun paiement en espèces.
-2. Il reçoit une **référence de commande** (`AD-XXXXXX`) et le numéro marchand de son pays. Il envoie le montant en indiquant cette référence.
-3. L'administrateur de son pays vérifie le relevé du compte marchand, puis clique sur **Paiement reçu** (onglet **Paiements** de l'administration). Le profil est publié et le praticien reçoit un SMS.
+0. Le soignant se connecte (SMS, email, Google ou GitHub), ouvre `/pro` et remplit **« Créer ma fiche praticien »** : identité, spécialité, numéro d'ordre, pays, région et lieu de consultation. La fiche est créée en attente de vérification et l'espace praticien s'ouvre aussitôt (`POST /api/pro/registration`).
+1. Dans son espace (onglet **Abonnement**), le praticien choisit une formule et l'un des moyens de paiement de son pays. Aucun paiement en espèces.
+2. **Mobile money ou virement** : il reçoit une **référence de commande** (`AD-XXXXXX`) et le numéro de réception. Il envoie le montant en indiquant cette référence. L'administrateur de son pays vérifie le relevé, puis clique sur **Paiement reçu** (onglet **Paiements** de l'administration). Le profil est publié et le praticien reçoit un SMS.
+3. **PayPal** : le praticien paie en dollars US (le prix en FCFA est converti au taux du jour), par compte PayPal ou carte bancaire. Le serveur crée la commande PayPal, capture le paiement, puis vérifie la référence, le montant et la devise. Le profil est alors publié **automatiquement**, sans intervention de l'administrateur.
 
 **Renouvellement.** Il est possible à tout moment. La nouvelle période s'ajoute à la fin de la période en cours, sans perte de jours ; après expiration, elle démarre au paiement. Un SMS de rappel part 7 jours puis 1 jour avant l'échéance. Une fois l'abonnement expiré, le profil disparaît de la recherche, mais les rendez-vous déjà pris sont conservés.
 
 **À configurer avant la mise en ligne**
-- **Numéro de réception** : +229 90 28 53 86, pour les trois pays. Il est configuré dans `backend/config/services.yaml` (`app.payment_accounts`). Pour proposer un opérateur précis, ajoutez sa clé (`orange_money`, `moov_money`, `wave`, `airtel_money`) avec son numéro ; seuls les moyens dotés d'un numéro sont proposés et acceptés.
+- **Numéros de réception** dans `backend/config/services.yaml` (`app.payment_accounts`). Par défaut, **+229 90 28 53 86** vaut pour tous les opérateurs mobile money de tous les pays. Pour un numéro propre à un pays ou à un opérateur, ajoutez par exemple `SN: { wave: '+221 …' }`, ou `SN: { mobile_money: '+221 …' }` pour tous les opérateurs du Sénégal. Sans numéro, par exemple pour le virement bancaire, le praticien est informé que l'équipe AlloDoc lui enverra les coordonnées par SMS.
+- **PayPal** : créer une application REST sur https://developer.paypal.com (compte PayPal Business), puis renseigner `PAYPAL_CLIENT_ID`, `PAYPAL_CLIENT_SECRET` et `PAYPAL_ENV` (`sandbox` pour les tests, `live` en production) dans `.env.local` / `deploy/prod.env`. Tant que ces valeurs sont vides, PayPal n'est pas proposé. Base de données : migration `Version20261011191233`.
 - Les **tarifs** sont en base (table `subscription_plan`) et peuvent changer sans redéploiement. Une commande garde le prix du jour où elle a été passée.
 
 **Démo et suite**
@@ -217,6 +252,8 @@ Situations d'abonnement prévues dans la démo :
 | POST | `/api/me/phone`, `/api/me/email` | Ajouter un numéro ou une adresse email vérifiés (par code) |
 | GET | `/api/subscription-plans` | Formules d'abonnement (public) |
 | GET / POST | `/api/pro/subscription`, `/api/pro/subscriptions`, `…/{id}/cancel`, `…/{id}/simulate-payment` | Abonnement du praticien |
+| POST | `/api/pro/subscriptions/{id}/paypal`, `…/{id}/paypal/capture` | Paiement PayPal (création de la commande, puis encaissement) |
+| GET | `/api/exchange-rates` | Taux de change face au dollar US (public) |
 | GET / POST | `/api/admin/subscriptions`, `…/{id}/confirm`, `…/{id}/reject` | Confirmation des paiements |
 | GET | `/api/countries`, `/api/regions`, `/api/cities`, `/api/specialties`, `/api/facilities` | Référentiels (API Platform) |
 | GET | `/api/countries/{code}/overview` | Page pays : régions et spécialités avec nombre de praticiens |
@@ -229,12 +266,12 @@ Situations d'abonnement prévues dans la démo :
 
 ## Choix techniques importants
 
-- **Fuseaux horaires.** Tout est stocké en UTC. Les créneaux sont calculés dans le fuseau du pays : Bamako et Ouagadougou en UTC+0, Niamey en UTC+1.
+- **Fuseaux horaires.** Tout est stocké en UTC. Les créneaux sont calculés dans le fuseau du pays (de UTC-1 au Cap-Vert à UTC+4 à Maurice et aux Seychelles), défini dans le référentiel.
 - **Double réservation impossible.** L'agenda du praticien est verrouillé pendant la réservation (`SELECT … FOR UPDATE`), et la contrainte unique `uniq_active_slot (practitioner_id, starts_at, slot_lock)` sert de dernier garde-fou. MariaDB n'a pas d'index partiel : on s'appuie donc sur le fait qu'un index unique accepte plusieurs NULL.
 - **Secret médical.** Les SMS ne contiennent ni le motif ni la spécialité. Le motif n'est visible que par le patient et le praticien.
 - **Sécurité.** Les codes OTP et les jetons sont stockés sous forme de hash. Les demandes sont limitées : 3 codes par numéro toutes les 10 minutes, 20 par IP et par heure, 10 vérifications par tranche de 15 minutes. Les rôles sont hiérarchisés (patient, praticien, administrateur pays, super-administrateur). Un journal d'audit (`audit_log`) trace les connexions, les consultations d'agenda et les validations. Le consentement explicite est obligatoire avant la première réservation.
-- **Référentiels en base.** Les pays et les régions ne sont pas codés en dur. Ajouter un pays revient à ajouter des lignes. Les régions portent `provisional = true` (découpages Mali 2023 et Burkina Faso 2025, avec l'ancien nom affiché) en attendant la validation par les ministères.
-- **Réseau faible.** Environ 100 Ko gzip au premier chargement. Les pages sont chargées à la demande. Les régions se replient et chargent leurs praticiens par 6. Les spécialités et les régions sont mises en cache localement. Un service worker permet la consultation hors ligne. Aucune donnée personnelle n'est mise en cache.
+- **Référentiels en base.** Les pays et les régions ne sont pas codés en dur. Ils sont décrits dans `config/reference/africa.json` et chargés par `app:install`, qui ajoute les éléments manquants. Les régions portent `provisional = true` (découpages récents : Mali 2023, Burkina Faso 2025 avec l'ancien nom affiché, Angola 2024, Burundi 2025) en attendant la validation par les ministères.
+- **Réseau faible.** Environ 145 Ko gzip de JavaScript et CSS au premier chargement, dont environ 45 Ko pour les 5 dictionnaires de langue, plus environ 32 Ko pour la carte de fond et la silhouette du continent. La carte interactive (environ 53 Ko) est chargée à part, sur l'accueil et l'onglet Afrique. Les drapeaux sont de petits fichiers SVG chargés à l'affichage. Les pages sont chargées à la demande. Les régions se replient et chargent leurs praticiens par 6. Les spécialités et les régions sont mises en cache localement. Un service worker permet la consultation hors ligne. Aucune donnée personnelle n'est mise en cache.
 - **SMS.** L'interface `App\Sms\SmsSenderInterface` est implémentée en développement par `LogSmsSender`, qui écrit dans `var/log/dev.log`. Pour la production, brancher Twilio, Infobip ou Africa's Talking.
 - **Rappels.** À planifier avec cron ou le Planificateur de tâches Windows :
   - `php bin/console app:send-reminders` toutes les 15 minutes (rappel de rendez-vous la veille) ;
@@ -243,7 +280,7 @@ Situations d'abonnement prévues dans la démo :
 
 ## Prévu au MVP du cahier des charges mais pas encore développé
 
-- **Inscription en ligne d'un praticien** (création de la fiche, puis vérification, puis abonnement) et modification de son profil (diplômes, tarifs, photo). Pour l'instant, seules les fiches de démonstration existent, et seul le compte praticien de démo y est rattaché : un vrai praticien ne peut donc pas encore s'abonner.
+- **Modification du profil praticien** (diplômes, tarifs, photo, horaires). L'inscription existe (`/pro`, puis « Créer ma fiche praticien ») avec des horaires par défaut : du lundi au vendredi, 8 h - 12 h, créneaux de 30 minutes. Mais le praticien ne peut pas encore les modifier lui-même.
 - Écran de gestion des horaires récurrents et des congés. Seule l'API `POST /api/pro/absences` existe.
 - Confirmation ou refus d'une demande par le praticien : les réservations sont confirmées immédiatement.
 - Favoris, carte géographique interactive (seul un lien OpenStreetMap est proposé), avis patients et modération.
