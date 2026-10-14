@@ -55,6 +55,10 @@ class Practitioner
     #[ORM\Column(nullable: true)]
     private ?\DateTimeImmutable $publishedUntil = null;
 
+    /** Fin de la période de publication gratuite accordée à la validation de la fiche (une seule fois). */
+    #[ORM\Column(nullable: true)]
+    private ?\DateTimeImmutable $trialUntil = null;
+
     #[ORM\Column(type: 'text', nullable: true)]
     private ?string $bio = null;
 
@@ -129,6 +133,26 @@ class Practitioner
     public function getVerifiedAt(): ?\DateTimeImmutable { return $this->verifiedAt; }
     public function getPublishedUntil(): ?\DateTimeImmutable { return $this->publishedUntil; }
     public function setPublishedUntil(?\DateTimeImmutable $until): static { $this->publishedUntil = $until; return $this; }
+
+    public function getTrialUntil(): ?\DateTimeImmutable { return $this->trialUntil; }
+
+    /** Publication gratuite en cours (aucune période payée au-delà). */
+    public function isInTrial(): bool
+    {
+        return null !== $this->trialUntil && $this->trialUntil > new \DateTimeImmutable()
+            && null !== $this->publishedUntil && $this->publishedUntil <= $this->trialUntil;
+    }
+
+    /** Publication gratuite jusqu'à $until ; les périodes payées ensuite s'ajoutent à sa fin. */
+    public function startTrial(\DateTimeImmutable $until): static
+    {
+        $this->trialUntil = $until;
+        if (null === $this->publishedUntil || $this->publishedUntil < $until) {
+            $this->publishedUntil = $until;
+        }
+
+        return $this;
+    }
 
     public function hasActiveSubscription(): bool
     {

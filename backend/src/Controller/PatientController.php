@@ -86,7 +86,7 @@ final class PatientController extends ApiController
         $user = $this->currentUser();
         $owner = $this->em->getRepository(User::class)->findOneBy(['phone' => $phone]);
         if (null !== $owner && $owner !== $user) {
-            return $this->error('Ce numéro est déjà associé à un autre compte AlloDoc. Connectez-vous avec ce numéro par SMS.', 409, ['code' => 'phone_taken']);
+            return $this->error('Ce numéro est déjà associé à un autre compte. Connectez-vous avec ce numéro par SMS.', 409, ['code' => 'phone_taken']);
         }
         if (!$otp->checkCode($phone, $code)) {
             return $this->error('Code incorrect ou expiré.', 401);
@@ -123,7 +123,7 @@ final class PatientController extends ApiController
         $user = $this->currentUser();
         $owner = $accounts->findByVerifiedEmail($email);
         if (null !== $owner && $owner !== $user) {
-            return $this->error('Cette adresse est déjà vérifiée sur un autre compte AlloDoc. Connectez-vous avec cette adresse.', 409, ['code' => 'email_taken']);
+            return $this->error('Cette adresse est déjà vérifiée sur un autre compte. Connectez-vous avec cette adresse.', 409, ['code' => 'email_taken']);
         }
         if (!$otp->checkCode($email, $code)) {
             return $this->error('Code incorrect ou expiré.', 401);
@@ -208,7 +208,7 @@ final class PatientController extends ApiController
         $reason = isset($data['reason']) ? mb_substr(trim((string) $data['reason']), 0, 255) : null;
 
         try {
-            $appointment = $booking->book($user, $practitioner, $startsAt, $reason ?: null, (bool) ($data['firstVisit'] ?? true), $relative);
+            $appointment = $booking->book($user, $practitioner, $startsAt, $reason ?: null, (bool) ($data['firstVisit'] ?? true), $relative, null, (bool) ($data['video'] ?? false));
         } catch (BookingException $e) {
             return $this->error($e->getMessage(), $e->status);
         }

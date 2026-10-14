@@ -32,6 +32,9 @@ export default function Home() {
           <p className="lead">{t("home.heroLead")}</p>
           <SearchBar specialties={specialties} />
           <div className="hero-chips">
+            <Link to="/recherche?teleconsultation=1" className="chip-video">
+              <Icon name="video" size={15} /> {t("common.teleconsultation")}
+            </Link>
             {popular.map((s) => (
               <Link key={s.slug} to={`/recherche?specialty=${s.slug}`}>
                 {s.name}
@@ -80,6 +83,45 @@ export default function Home() {
               <Suspense fallback={<div className="skeleton map-skeleton" />}>
                 <AfricaMap subregions={subregionOf} />
               </Suspense>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="section" style={{ paddingTop: 8 }}>
+        <div className="container">
+          <div className="tele-banner">
+            <div className="tele-banner-text">
+              <span className="tele-kicker">
+                <Icon name="video" size={16} /> {t("common.teleconsultation")}
+              </span>
+              <h2>{t("video.homeTitle")}</h2>
+              <p>{t("video.homeLead")}</p>
+              <ul>
+                <li>
+                  <Icon name="check" size={16} /> {t("video.homePoint1")}
+                </li>
+                <li>
+                  <Icon name="check" size={16} /> {t("video.homePoint2")}
+                </li>
+                <li>
+                  <Icon name="check" size={16} /> {t("video.homePoint3")}
+                </li>
+              </ul>
+              <Link to="/recherche?teleconsultation=1" className="btn">
+                <Icon name="video" size={18} /> {t("video.homeCta")}
+              </Link>
+            </div>
+            <div className="tele-banner-art" aria-hidden="true">
+              <div className="tele-screen">
+                <span className="tele-face doctor">
+                  <Icon name="stethoscope" size={34} />
+                </span>
+                <span className="tele-face patient">
+                  <Icon name="user" size={22} />
+                </span>
+                <span className="tele-live">● {t("video.live")}</span>
+              </div>
             </div>
           </div>
         </div>

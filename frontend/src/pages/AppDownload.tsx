@@ -6,6 +6,7 @@ import { QrCode } from "../components/QrCode";
 import { useTitle } from "../lib/hooks";
 import { Trans, useI18n, type MessageKey } from "../lib/i18n";
 import { APK_URL, type Platform, useInstall } from "../lib/install";
+import { BRAND_NAME } from "../lib/brand";
 
 const PATIENT: [string, MessageKey][] = [
   ["search", "app.patient1"],
@@ -28,7 +29,7 @@ function PhoneMock({ variant }: { variant: "patient" | "pro" }) {
     <div className="phone-mock" aria-hidden="true">
       <div className="phone-screen">
         <div className="phone-bar">
-          <LogoMark size={18} /> <b>AlloDoc</b>
+          <LogoMark size={18} /> <b>{BRAND_NAME}</b>
         </div>
         <div className="kente-band" style={{ height: 4 }} />
         {variant === "patient" ? (
@@ -84,7 +85,7 @@ function Steps({ platform }: { platform: Platform }) {
     return (
       <ol className="install-steps">
         <li>
-          <Trans text={t("app.iosStep1")} values={{ app: <b>allodoc</b>, browser: <b>Safari</b> }} />
+          <Trans text={t("app.iosStep1")} values={{ app: <b>{window.location.host}</b>, browser: <b>Safari</b> }} />
         </li>
         <li>
           <Trans text={t("app.iosStep2")} values={{ share: <b>{t("app.iosShare")}</b>, icon: <span className="kbd">⬆︎</span> }} />
@@ -98,7 +99,7 @@ function Steps({ platform }: { platform: Platform }) {
   return (
     <ol className="install-steps">
       <li>
-        <Trans text={t("app.androidStep1")} values={{ app: <b>allodoc</b>, browser: <b>Chrome</b> }} />
+        <Trans text={t("app.androidStep1")} values={{ app: <b>{window.location.host}</b>, browser: <b>Chrome</b> }} />
       </li>
       <li>
         <Trans text={t("app.androidStep2")} values={{ icon: <span className="kbd">⋮</span> }} />

@@ -6,6 +6,7 @@ use App\Entity\Practitioner;
 use App\Entity\User;
 use App\Enum\VerificationStatus;
 use App\Service\Presenter;
+use App\Service\SubscriptionService;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Attribute\Route;
@@ -45,7 +46,7 @@ final class AdminController extends ApiController
 
     /** Corps : {"decision": "verify" | "reject"}. */
     #[Route('/practitioners/{id}/verification', methods: ['POST'])]
-    public function decide(int $id, Request $request): JsonResponse
+    public function decide(int $id, Request $request, SubscriptionService $subscriptions): JsonResponse
     {
         $practitioner = $this->em->getRepository(Practitioner::class)->find($id);
         $country = $this->scopeCountry();
@@ -55,7 +56,8 @@ final class AdminController extends ApiController
         }
 
         match ($this->body($request)['decision'] ?? null) {
-            'verify' => $practitioner->verify(),
+            // Validation : publication gratuite pendant les premiers mois (une seule fois par praticien).
+            'verify' => $subscriptions->grantTrial($practitioner->verify()),
             'reject' => $practitioner->reject(),
             default => null,
         };

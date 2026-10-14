@@ -26,13 +26,17 @@ final class BookingService
         private readonly EntityManagerInterface $em,
         private readonly SlotService $slots,
         private readonly NotificationService $notifications,
+        private readonly VideoConsultation $videos,
     ) {
     }
 
-    public function book(User $patient, Practitioner $practitioner, \DateTimeImmutable $startsAt, ?string $reason, bool $firstVisit, ?Relative $relative, ?Appointment $replacing = null): Appointment
+    public function book(User $patient, Practitioner $practitioner, \DateTimeImmutable $startsAt, ?string $reason, bool $firstVisit, ?Relative $relative, ?Appointment $replacing = null, bool $video = false): Appointment
     {
         if (!$practitioner->isPublished()) {
             throw new BookingException('Ce praticien ne prend pas de rendez-vous en ligne.', 404);
+        }
+        if ($video && !$practitioner->hasTeleconsultation()) {
+            throw new BookingException('Ce praticien ne propose pas la téléconsultation.', 422);
         }
         if (null === $patient->getPhone()) {
             throw new BookingException('Ajoutez un numéro de téléphone : la confirmation et le rappel sont envoyés par SMS.', 422);
@@ -61,6 +65,9 @@ final class BookingService
 
             $slot = $this->slots->resolveSlot($practitioner, $startsAt);
             $appointment = new Appointment($patient, $practitioner, $slot['facility'], $startsAt, $slot['endsAt'], $reason, $firstVisit, $relative);
+            if ($video) {
+                $appointment->startVideo($this->videos->newRoom());
+            }
             $this->em->persist($appointment);
             $this->notifications->appointmentConfirmed($appointment);
             $this->em->flush();
@@ -96,7 +103,7 @@ final class BookingService
             throw new BookingException('Ce rendez-vous ne peut plus être déplacé.', 409);
         }
 
-        return $this->book($appointment->getPatient(), $appointment->getPractitioner(), $newStart, $appointment->getReason(), $appointment->isFirstVisit(), $appointment->getRelative(), $appointment);
+        return $this->book($appointment->getPatient(), $appointment->getPractitioner(), $newStart, $appointment->getReason(), $appointment->isFirstVisit(), $appointment->getRelative(), $appointment, $appointment->isVideo());
     }
 
     private function countUpcoming(User $patient, Practitioner $practitioner): int

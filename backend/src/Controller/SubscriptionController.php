@@ -44,6 +44,10 @@ final class SubscriptionController extends ApiController
             'activeSubscription' => $active,
             'publishedUntil' => $until?->format(\DATE_ATOM),
             'daysLeft' => $active ? (int) ceil(($until->getTimestamp() - time()) / 86400) : 0,
+            // Publication gratuite : en cours, déjà accordée ou à venir (à la validation de la fiche).
+            'inTrial' => $practitioner->isInTrial(),
+            'trialUntil' => $practitioner->getTrialUntil()?->format(\DATE_ATOM),
+            'trialMonths' => SubscriptionService::TRIAL_MONTHS,
             'plans' => array_map(fn (SubscriptionPlan $p) => [
                 'code' => $p->getCode(),
                 'name' => $p->getName(),

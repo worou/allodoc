@@ -36,6 +36,7 @@ export default function Booking() {
   const [forWhom, setForWhom] = useState<string>("me");
   const [newRelative, setNewRelative] = useState({ firstName: "", lastName: "", relation: "enfant" });
   const [firstVisit, setFirstVisit] = useState(true);
+  const [video, setVideo] = useState(params.get("mode") === "video");
   const [reason, setReason] = useState("");
   const [step, setStep] = useState<Step>("details");
   const [identity, setIdentity] = useState({ firstName: "", lastName: "", consent: false });
@@ -79,7 +80,7 @@ export default function Booking() {
         }
         appointment = await api<Appointment>("/api/appointments", {
           method: "POST",
-          body: JSON.stringify({ practitioner: slug, startsAt: start, reason: reason || undefined, firstVisit, relativeId }),
+          body: JSON.stringify({ practitioner: slug, startsAt: start, reason: reason || undefined, firstVisit, relativeId, video: video && !!p?.teleconsultation }),
         });
       }
       navigate(`/rdv/confirmation/${appointment.id}`, { replace: true, state: { appointment } });
@@ -130,7 +131,7 @@ export default function Booking() {
             {specialtyList(p.specialties)} · {money(p.fee, p.currency)}
           </p>
           <p className="small">
-            {t("booking.when", { date: longDate(when.date), time: hour(when.time) })} · {p.facility?.name}
+            {t("booking.when", { date: longDate(when.date), time: hour(when.time) })} · {video && p.teleconsultation ? t("video.remote") : p.facility?.name}
           </p>
         </div>
       </div>
@@ -249,6 +250,27 @@ export default function Booking() {
                       </option>
                     ))}
                   </select>
+                </div>
+              )}
+
+              {p.teleconsultation && !reschedule && (
+                <div>
+                  <span className="field-label">{t("video.modeQuestion")}</span>
+                  <div className="row">
+                    <label className="choice" style={{ flex: 1 }}>
+                      <input type="radio" name="mode" checked={!video} onChange={() => setVideo(false)} />
+                      <span>
+                        <Icon name="building" size={16} className="inline" /> {t("video.modeOffice")}
+                      </span>
+                    </label>
+                    <label className="choice" style={{ flex: 1 }}>
+                      <input type="radio" name="mode" checked={video} onChange={() => setVideo(true)} />
+                      <span>
+                        <Icon name="video" size={16} className="inline" /> {t("video.modeVideo")}
+                      </span>
+                    </label>
+                  </div>
+                  {video && <p className="small muted" style={{ marginTop: 6 }}>{t("video.modeVideoHint")}</p>}
                 </div>
               )}
 

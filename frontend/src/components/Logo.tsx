@@ -1,5 +1,6 @@
 import { Link } from "react-router";
 import { useI18n } from "../lib/i18n";
+import { BRAND_PREFIX } from "../lib/brand";
 
 /** Marque AlloDoc : une croix de soin posée sur un soleil africain, entourée d'un motif tissé (couleurs panafricaines). */
 export function LogoMark({ size = 34 }: { size?: number }) {
@@ -20,7 +21,8 @@ export function Logo() {
     <Link to="/" className="brand" aria-label={t("header.homeLabel")}>
       <LogoMark />
       <span>
-        Allo<b>Doc</b>
+        {BRAND_PREFIX}
+        <b>Doc</b>
       </span>
     </Link>
   );

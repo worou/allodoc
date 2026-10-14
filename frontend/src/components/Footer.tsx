@@ -2,6 +2,7 @@ import { Link } from "react-router";
 import { SUBREGIONS, subregionName, subregionPath } from "../lib/africa";
 import { useI18n } from "../lib/i18n";
 import { LogoMark } from "./Logo";
+import { BRAND_PREFIX } from "../lib/brand";
 
 export function Footer() {
   const { t } = useI18n();
@@ -13,7 +14,8 @@ export function Footer() {
           <div className="brand" style={{ color: "#fff", marginBottom: 10 }}>
             <LogoMark size={30} />
             <span>
-              Allo<b>Doc</b>
+              {BRAND_PREFIX}
+              <b>Doc</b>
             </span>
           </div>
           <p className="small">{t("footer.tagline")}</p>
@@ -45,7 +47,14 @@ export function Footer() {
           </ul>
         </div>
       </div>
-      <div className="footer-legal">{t("footer.legal")}</div>
+      <div className="footer-legal">
+        <nav className="footer-legal-links" aria-label={t("legal.documents")}>
+          <Link to="/mentions-legales">{t("legal.notice")}</Link>
+          <Link to="/confidentialite">{t("legal.privacy")}</Link>
+          <Link to="/conditions">{t("legal.terms")}</Link>
+        </nav>
+        {t("footer.legal")}
+      </div>
     </footer>
   );
 }

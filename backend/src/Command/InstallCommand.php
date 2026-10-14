@@ -13,6 +13,7 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
 
 /**
  * Installation en production (sans données de démonstration) : référentiels et compte super-administrateur.
@@ -23,8 +24,10 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 #[AsCommand(name: 'app:install', description: 'Charge les référentiels (pays, régions, spécialités, formules) et crée le super-administrateur')]
 final class InstallCommand extends Command
 {
-    public function __construct(private readonly EntityManagerInterface $em)
-    {
+    public function __construct(
+        private readonly EntityManagerInterface $em,
+        #[Autowire('%env(BRAND_NAME)%')] private readonly string $brand,
+    ) {
         parent::__construct();
     }
 
@@ -58,7 +61,7 @@ final class InstallCommand extends Command
             }
             $admin = (new AccountResolver($this->em))->findByVerifiedEmail($email);
             if (null === $admin) {
-                $admin = (new User(null))->setVerifiedEmail($email)->setFirstName('Administrateur')->setLastName('AlloDoc')->giveConsent();
+                $admin = (new User(null))->setVerifiedEmail($email)->setFirstName('Administrateur')->setLastName($this->brand)->giveConsent();
                 $this->em->persist($admin);
             }
             $admin->setRoles(array_values(array_unique([...$admin->getRoles(), User::ROLE_SUPER_ADMIN])));

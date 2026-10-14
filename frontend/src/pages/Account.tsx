@@ -9,6 +9,7 @@ import { dayShort, fullDate, hour, longDate, monthShort, relationLabel, specialt
 import { useApi, useTitle } from "../lib/hooks";
 import { useI18n } from "../lib/i18n";
 import type { Appointment, User } from "../lib/types";
+import { VideoBadge, VideoJoinButton } from "../components/VideoJoin";
 
 const RELATIONS = ["enfant", "parent", "conjoint", "autre"];
 
@@ -25,15 +26,14 @@ function AppointmentCard({ a, past, onCancel }: { a: Appointment; past?: boolean
       <div style={{ minWidth: 0 }}>
         <div className="row">
           <span className={`tag ${tagClass}`}>{statusLabel(a.status)}</span>
+          {a.video && <VideoBadge />}
           <span className="small muted">{hour(a.localTime)}</span>
         </div>
         <Link to={`/medecin/${a.practitioner.slug}`} style={{ fontWeight: 800, fontSize: 17, display: "block", marginTop: 4 }}>
           {a.practitioner.fullName}
         </Link>
         <p className="small muted">{specialtyList(a.practitioner.specialties)}</p>
-        <p className="small">
-          {a.facility.name} · {a.facility.address}
-        </p>
+        <p className="small">{a.video ? t("video.remote") : `${a.facility.name} · ${a.facility.address}`}</p>
         {a.relative && (
           <p className="small row" style={{ marginTop: 4 }}>
             <Icon name="users" size={14} /> {t("account.for", { name: `${a.relative.firstName} ${a.relative.lastName}` })}
@@ -42,6 +42,7 @@ function AppointmentCard({ a, past, onCancel }: { a: Appointment; past?: boolean
       </div>
       {!past && onCancel && (
         <div className="appt-actions">
+          <VideoJoinButton a={a} />
           <Link to={`/medecin/${a.practitioner.slug}?reschedule=${a.id}`} className="btn btn-sm btn-outline">
             {t("account.move")}
           </Link>

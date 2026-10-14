@@ -10,6 +10,7 @@ use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
 
 /**
  * À lancer UNE FOIS PAR JOUR (cron ou Planificateur de tâches) : prévient les praticiens dont l'abonnement
@@ -22,6 +23,7 @@ final class SubscriptionRemindersCommand extends Command
         private readonly EntityManagerInterface $em,
         private readonly SmsSenderInterface $sms,
         private readonly SubscriptionService $subscriptions,
+        #[Autowire('%env(BRAND_NAME)%')] private readonly string $brand,
     ) {
         parent::__construct();
     }
@@ -44,7 +46,9 @@ final class SubscriptionRemindersCommand extends Command
                     continue;
                 }
                 $this->sms->send($phone, sprintf(
-                    'AlloDoc : votre abonnement expire le %s. Renouvelez-le depuis votre espace praticien pour rester visible des patients.',
+                    $practitioner->isInTrial()
+                        ? $this->brand.' : votre période gratuite se termine le %s. Souscrivez depuis votre espace praticien pour rester visible des patients.'
+                        : $this->brand.' : votre abonnement expire le %s. Renouvelez-le depuis votre espace praticien pour rester visible des patients.',
                     $practitioner->getPublishedUntil()->format('d/m/Y'),
                 ));
                 ++$sent;

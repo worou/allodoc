@@ -101,6 +101,10 @@ final class Presenter
             'localTime' => $a->getStartsAt()->setTimezone($tz)->format('H:i'),
             'status' => $a->getStatus()->value,
             'firstVisit' => $a->isFirstVisit(),
+            // Téléconsultation : la salle elle-même n'est donnée que par /api/appointments/{id}/video, pendant la fenêtre d'ouverture.
+            'video' => $a->isVideo(),
+            'videoOpensAt' => $a->isVideo() ? $a->getStartsAt()->modify(VideoConsultation::OPENS_BEFORE)->format(\DATE_ATOM) : null,
+            'videoClosesAt' => $a->isVideo() ? $a->getEndsAt()->modify(VideoConsultation::CLOSES_AFTER)->format(\DATE_ATOM) : null,
             'reason' => $withReason ? $a->getReason() : null,
             'practitioner' => $this->practitionerSummary($a->getPractitioner()),
             'facility' => $this->facility($a->getFacility()),

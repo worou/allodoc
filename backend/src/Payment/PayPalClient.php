@@ -23,6 +23,7 @@ final class PayPalClient
         #[Autowire('%env(PAYPAL_CLIENT_ID)%')] private readonly string $clientId,
         #[Autowire('%env(PAYPAL_CLIENT_SECRET)%')] private readonly string $secret,
         #[Autowire('%env(PAYPAL_ENV)%')] private readonly string $env,
+        #[Autowire('%env(BRAND_NAME)%')] private readonly string $brand,
     ) {
     }
 
@@ -49,7 +50,7 @@ final class PayPalClient
                 'amount' => ['currency_code' => 'USD', 'value' => self::formatCents($amountUsdCents)],
             ]],
             'payment_source' => ['paypal' => ['experience_context' => [
-                'brand_name' => 'AlloDoc',
+                'brand_name' => $this->brand,
                 'shipping_preference' => 'NO_SHIPPING',
                 'user_action' => 'PAY_NOW',
             ]]],

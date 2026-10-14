@@ -176,6 +176,11 @@ export default function Practitioner() {
             </p>
           </div>
           <div className="body">
+            {p.teleconsultation && (
+              <p className="tele-hint">
+                <Icon name="video" size={18} /> {t("video.practitionerHint")}
+              </p>
+            )}
             {slots.data ? (
               <SlotGrid slug={p.slug} initialDays={slots.data.days} columns={4} reschedule={reschedule} today={today} />
             ) : slots.error ? (

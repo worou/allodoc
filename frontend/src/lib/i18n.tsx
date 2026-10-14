@@ -1,5 +1,6 @@
 import { createContext, Fragment, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 import { ar } from "../i18n/ar";
+import { BRAND_NAME } from "./brand";
 import { en } from "../i18n/en";
 import { es } from "../i18n/es";
 import { fr } from "../i18n/fr";
@@ -59,7 +60,8 @@ export function intlLocale(lang: Lang = current): string {
 }
 
 export function translate(key: MessageKey, vars?: Vars, lang: Lang = current): string {
-  const text = DICTS[lang][key] ?? fr[key];
+  // {brand} : nom du site (AlloDoc ou AfroDoc), remplacé dans tous les textes.
+  const text = (DICTS[lang][key] ?? fr[key]).replaceAll("{brand}", BRAND_NAME);
   return vars ? text.replace(/\{(\w+)\}/g, (match, name: string) => (name in vars ? String(vars[name]) : match)) : text;
 }
 

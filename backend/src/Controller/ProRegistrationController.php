@@ -93,6 +93,7 @@ final class ProRegistrationController extends ApiController
         $practitioner = (new Practitioner($this->uniqueSlug($firstName, $lastName), $firstName, $lastName, $gender, $orderNumber))
             ->setTitle('' === ($data['title'] ?? 'Dr') ? '' : 'Dr')
             ->setFee($fee)
+            ->setTeleconsultation((bool) ($data['teleconsultation'] ?? false))
             ->setLanguages(\array_slice(array_values(array_unique(['fr', ...$country->getLanguages()])), 0, 4))
             ->addSpecialty($specialty)
             ->addFacility($facility)

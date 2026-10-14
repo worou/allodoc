@@ -34,6 +34,8 @@ MYSQL_BIN="${MYSQL_BIN:-mysql}"
 MYSQLDUMP_BIN="${MYSQLDUMP_BIN:-mysqldump}"
 ADMIN_EMAIL="${ADMIN_EMAIL:?Indiquez ADMIN_EMAIL (super-administrateur)}"
 INSTALL_DB="${INSTALL_DB:-0}"
+# Nom affiché du site (logo, titre, application installée) : AfroDoc pour afrodoc, AlloDoc sinon.
+BRAND="${BRAND:-$([ "$SITE" = "afrodoc" ] && echo AfroDoc || echo AlloDoc)}"
 DEMO="${DEMO:-0}"
 BUILD_DB="${SITE}_build"
 
@@ -56,7 +58,9 @@ echo "== API : dépendances de production"
 rm -rf "$OUT/$API_DIR/var" && mkdir -p "$OUT/$API_DIR/var/cache" "$OUT/$API_DIR/var/log"
 
 echo "== Front : build de production (API sur le même domaine)"
-(cd "$ROOT/frontend" && npm run build -- --mode hosting --outDir "$OUT/www" --emptyOutDir > /dev/null)
+(cd "$ROOT/frontend" && VITE_BRAND_NAME="$BRAND" npm run build -- --mode hosting --outDir "$OUT/www" --emptyOutDir > /dev/null)
+# Manifeste de l'application installable (fichier statique) : nom de la marque du site.
+sed -i "s/AlloDoc/$BRAND/g" "$OUT/www/manifest.webmanifest"
 cp "$ROOT/deploy/server/.htaccess" "$OUT/www/"
 sed "s#allodoc-api#$API_DIR#g" "$ROOT/deploy/server/api.php" > "$OUT/www/api.php"
 # Ressources de Swagger UI (/api/docs) servies depuis la racine web.

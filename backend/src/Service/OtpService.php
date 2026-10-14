@@ -28,6 +28,7 @@ final class OtpService
         private readonly LoggerInterface $logger,
         #[Autowire('%kernel.secret%')] private readonly string $secret,
         #[Autowire('%env(MAILER_FROM)%')] private readonly string $mailFrom,
+        #[Autowire('%env(BRAND_NAME)%')] private readonly string $brand,
     ) {
     }
 
@@ -35,7 +36,7 @@ final class OtpService
     public function requestSms(string $phone): string
     {
         $code = $this->createCode($phone);
-        $this->sms->send($phone, sprintf('AlloDoc : votre code de connexion est %s. Il expire dans 10 minutes. Ne le partagez avec personne.', $code));
+        $this->sms->send($phone, sprintf('%s : votre code de connexion est %s. Il expire dans 10 minutes. Ne le partagez avec personne.', $this->brand, $code));
 
         return $code;
     }
@@ -46,12 +47,12 @@ final class OtpService
         $this->mailer->send((new Email())
             ->from($this->mailFrom)
             ->to($email)
-            ->subject(sprintf('%s est votre code de connexion AlloDoc', $code))
-            ->text(sprintf("Bonjour,\n\nVotre code de connexion AlloDoc est : %s\n\nIl expire dans 10 minutes. Ne le communiquez à personne : l'équipe AlloDoc ne vous le demandera jamais.\n\nSi vous n'êtes pas à l'origine de cette demande, ignorez ce message.", $code))
+            ->subject(sprintf('%s est votre code de connexion %s', $code, $this->brand))
+            ->text(sprintf("Bonjour,\n\nVotre code de connexion %2\$s est : %1\$s\n\nIl expire dans 10 minutes. Ne le communiquez à personne : l'équipe %2\$s ne vous le demandera jamais.\n\nSi vous n'êtes pas à l'origine de cette demande, ignorez ce message.", $code, $this->brand))
             ->html(sprintf(
                 '<div style="font-family:Arial,sans-serif;max-width:480px;margin:auto;color:#1d1b19">'
                 .'<div style="height:6px;background:repeating-linear-gradient(90deg,#e3a21a 0 22px,#1d7a4c 22px 44px,#c2502a 44px 66px,#1c1f57 66px 88px)"></div>'
-                .'<h1 style="color:#1c1f57;font-size:22px">Allo<span style="color:#e3a21a">Doc</span></h1>'
+                .'<h1 style="color:#1c1f57;font-size:22px">'.htmlspecialchars(preg_replace('/Doc$/', '', $this->brand)).'<span style="color:#e3a21a">Doc</span></h1>'
                 .'<p>Votre code de connexion :</p>'
                 .'<p style="font-size:32px;font-weight:bold;letter-spacing:8px;color:#c2502a">%s</p>'
                 .'<p style="color:#7b746c;font-size:14px">Il expire dans 10 minutes. Ne le communiquez à personne. '

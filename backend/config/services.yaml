@@ -16,7 +16,7 @@ parameters:
     # PayPal n'a pas de numéro : il est proposé dès que PAYPAL_CLIENT_ID et PAYPAL_CLIENT_SECRET sont renseignés.
     app.payment_accounts:
         default:
-            holder: 'AlloDoc'
+            holder: '%env(BRAND_NAME)%'
             # Numéro de réception communiqué par AlloDoc (Bénin, +229), pour tous les opérateurs de tous les pays.
             mobile_money: '+229 90 28 53 86'
         # Exemple de numéros propres à un pays :

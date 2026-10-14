@@ -11,6 +11,8 @@ import Home from "./pages/Home";
 
 // Pages chargées à la demande : le premier écran reste léger sur réseau 3G.
 const Africa = lazy(() => import("./pages/Africa"));
+const Legal = lazy(() => import("./pages/Legal"));
+const Consultation = lazy(() => import("./pages/Consultation"));
 const Country = lazy(() => import("./pages/Country"));
 const Search = lazy(() => import("./pages/Search"));
 const Practitioner = lazy(() => import("./pages/Practitioner"));
@@ -86,12 +88,16 @@ export default function App() {
             <Route path="medecin/:slug" element={<Practitioner />} />
             <Route path="rdv/confirmation/:id" element={<Confirmation />} />
             <Route path="rdv/:slug" element={<Booking />} />
+            <Route path="consultation/:id" element={<Consultation />} />
             <Route path="connexion" element={<Login />} />
             <Route path="connexion/oauth" element={<OAuthCallback />} />
             <Route path="compte" element={<Account />} />
             <Route path="pro" element={<Pro />} />
             <Route path="admin" element={<Admin />} />
             <Route path="application" element={<AppDownload />} />
+            <Route path="mentions-legales" element={<Legal />} />
+            <Route path="confidentialite" element={<Legal />} />
+            <Route path="conditions" element={<Legal />} />
             <Route path="afrique" element={<Africa />} />
             <Route path="afrique/:subregion" element={<Africa />} />
             <Route path=":country" element={<Country />} />

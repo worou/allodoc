@@ -108,6 +108,24 @@ final class ProController extends ApiController
         return $this->json(['ok' => true], 201);
     }
 
+    /** Réglages du praticien. Corps : {"teleconsultation": true | false}. */
+    #[Route('/settings', methods: ['PATCH'])]
+    public function settings(Request $request, Presenter $presenter): JsonResponse
+    {
+        $practitioner = $this->practitioner();
+        if (null === $practitioner) {
+            return $this->error('Aucune fiche praticien liée à ce compte.', 404);
+        }
+        $data = $this->body($request);
+        if (\array_key_exists('teleconsultation', $data)) {
+            $practitioner->setTeleconsultation((bool) $data['teleconsultation']);
+        }
+        $this->audit($request, 'pro.settings', 'practitioner:'.$practitioner->getId());
+        $this->em->flush();
+
+        return $this->json($presenter->practitionerSummary($practitioner));
+    }
+
     /** Fréquentation et taux d'absence sur les 30 derniers jours. */
     #[Route('/stats', methods: ['GET'])]
     public function stats(): JsonResponse

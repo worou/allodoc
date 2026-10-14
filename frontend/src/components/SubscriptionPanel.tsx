@@ -8,6 +8,7 @@ import type { Subscription, SubscriptionPlan, SubscriptionStatusResponse } from 
 import { Icon } from "./Icon";
 import { PayPalCheckout } from "./PayPalCheckout";
 import { ErrorState, Loading } from "./States";
+import { BRAND_NAME } from "../lib/brand";
 
 const STATUS: Record<Subscription["status"], [MessageKey, string]> = {
   pending: ["sub.status.pending", "tag-ochre"],
@@ -15,26 +16,32 @@ const STATUS: Record<Subscription["status"], [MessageKey, string]> = {
   cancelled: ["sub.status.cancelled", "tag"],
 };
 
-/** Cartes de formules : réutilisées sur la page de présentation aux soignants. */
-export function PlanCards({ plans, selected, onSelect }: { plans: SubscriptionPlan[]; selected?: string; onSelect?: (code: string) => void }) {
+/**
+ * Cartes de formules (même prix mensuel, réglable pour 1, 3, 6 ou 12 mois), précédées de l'offre de gratuité.
+ * Réutilisées sur la page de présentation aux soignants.
+ */
+export function PlanCards({ plans, selected, onSelect, trialMonths = 3 }: { plans: SubscriptionPlan[]; selected?: string; onSelect?: (code: string) => void; trialMonths?: number }) {
   const { t } = useI18n();
   const rates = useExchangeRates();
-  const semester = plans.find((p) => p.code === "semester");
+  const monthly = plans.find((p) => p.durationMonths === 1) ?? plans[0];
   return (
+    <>
+      {monthly && trialMonths > 0 && (
+        <p className="plan-offer">
+          <Icon name="star" size={18} /> {t("sub.trialOffer", { months: trialMonths, price: fcfa(monthly.monthlyPrice) })}
+        </p>
+      )}
     <div className="plan-grid">
       {plans.map((plan) => {
-        // Économie de l'annuel par rapport à deux semestres.
-        const saving = plan.code === "annual" && semester ? semester.price * 2 - plan.price : 0;
         const Tag = onSelect ? "button" : "div";
         return (
           <Tag
             key={plan.code}
             type={onSelect ? "button" : undefined}
-            className={`card plan-card${selected === plan.code ? " selected" : ""}${plan.code === "annual" ? " featured" : ""}`}
+            className={`card plan-card${selected === plan.code ? " selected" : ""}${plan.durationMonths === 1 ? " featured" : ""}`}
             onClick={onSelect ? () => onSelect(plan.code) : undefined}
             aria-pressed={onSelect ? selected === plan.code : undefined}
           >
-            {saving > 0 && <span className="plan-badge">{t("sub.save", { amount: fcfa(saving) })}</span>}
             <span className="plan-name">{planName(plan)}</span>
             <span className="plan-price">{fcfa(plan.price)}</span>
             {usdEquivalent(plan.price, plan.currency, rates) && (
@@ -43,7 +50,7 @@ export function PlanCards({ plans, selected, onSelect }: { plans: SubscriptionPl
               </span>
             )}
             <span className="muted small">
-              {t("sub.duration", { months: plan.durationMonths, monthly: fcfa(plan.monthlyPrice) })}
+              {plan.durationMonths === 1 ? t("sub.durationMonthly") : t("sub.duration", { months: plan.durationMonths, monthly: fcfa(plan.monthlyPrice) })}
             </span>
             <ul className="plan-features small">
               <li><Icon name="check" size={14} /> {t("sub.feature.visible")}</li>
@@ -55,6 +62,7 @@ export function PlanCards({ plans, selected, onSelect }: { plans: SubscriptionPl
         );
       })}
     </div>
+    </>
   );
 }
 
@@ -116,7 +124,7 @@ function PaymentInstructions({ order, account, paypal, canSimulate, onChange }: 
             {number && (
               <>
                 {" "}
-                <Trans text={t("sub.toNumber")} values={{ number: <b className="nowrap" dir="ltr">{number}</b>, holder: account.holder ?? "AlloDoc" }} />
+                <Trans text={t("sub.toNumber")} values={{ number: <b className="nowrap" dir="ltr">{number}</b>, holder: account.holder ?? BRAND_NAME }} />
               </>
             )}
             .{!number && ` ${t("sub.detailsBySms")}`}
@@ -147,7 +155,7 @@ export function SubscriptionPanel() {
   const { t, tn } = useI18n();
   const { data, error, loading, reload } = useApi<SubscriptionStatusResponse>("/api/pro/subscription");
   const rates = useExchangeRates();
-  const [plan, setPlan] = useState<string>("annual");
+  const [plan, setPlan] = useState<string>("monthly");
   const [method, setMethod] = useState<string>("");
   const [busy, setBusy] = useState(false);
   const [failure, setFailure] = useState<string | null>(null);
@@ -158,6 +166,9 @@ export function SubscriptionPanel() {
   const methods = data.methods;
   const chosenMethod = method || methods[0]?.code || "";
   const expiringSoon = data.activeSubscription && data.daysLeft <= 14;
+  const monthlyPrice = fcfa(data.plans.find((p) => p.durationMonths === 1)?.monthlyPrice ?? data.plans[0]?.monthlyPrice ?? 0);
+  // En attente de validation : rien à payer, la publication sera gratuite les premiers mois.
+  const canOrder = data.verified || data.pending !== null;
   const selectedPlan = data.plans.find((p) => p.code === plan);
   const selectedUsd = selectedPlan ? usdEquivalent(selectedPlan.price, selectedPlan.currency, rates) : null;
   const orderAmount = `${fcfa(selectedPlan?.price ?? 0)}${selectedUsd ? ` (${selectedUsd})` : ""}`;
@@ -183,7 +194,12 @@ export function SubscriptionPanel() {
             <Icon name={data.published ? (expiringSoon ? "clock" : "check") : "info"} size={26} />
           </span>
           <div>
-            {data.published ? (
+            {data.published && data.inTrial ? (
+              <>
+                <h2 style={{ margin: 0 }}>{expiringSoon ? tn("sub.trialEndsIn", data.daysLeft) : t("sub.trialTitle", { date: shortDate(data.publishedUntil!) })}</h2>
+                <p className="muted">{t("sub.trialText", { price: monthlyPrice })}</p>
+              </>
+            ) : data.published ? (
               <>
                 <h2 style={{ margin: 0 }}>{expiringSoon ? tn("sub.expiresIn", data.daysLeft) : t("sub.published")}</h2>
                 <p className="muted">
@@ -196,7 +212,7 @@ export function SubscriptionPanel() {
                 <h2 style={{ margin: 0 }}>{t("sub.notVisible")}</h2>
                 <p className="muted">
                   {!data.verified
-                    ? t("sub.pendingVerification")
+                    ? t("sub.pendingVerification", { months: data.trialMonths })
                     : data.publishedUntil
                       ? t("sub.expired", { date: shortDate(data.publishedUntil) })
                       : t("sub.subscribe")}
@@ -209,12 +225,19 @@ export function SubscriptionPanel() {
 
       {data.pending ? (
         <PaymentInstructions order={data.pending} account={data.paymentAccount} paypal={data.paypal} canSimulate={data.canSimulatePayment} onChange={reload} />
+      ) : !canOrder ? (
+        <section className="card panel">
+          <h2>
+            <Icon name="crown" /> {t("sub.choosePlan")}
+          </h2>
+          <PlanCards plans={data.plans} trialMonths={data.trialMonths} />
+        </section>
       ) : (
         <section className="card panel">
           <h2>
-            <Icon name="crown" /> {data.activeSubscription ? t("sub.renew") : t("sub.choosePlan")}
+            <Icon name="crown" /> {data.inTrial ? t("sub.subscribeAfterTrial") : data.activeSubscription ? t("sub.renew") : t("sub.choosePlan")}
           </h2>
-          <PlanCards plans={data.plans} selected={plan} onSelect={setPlan} />
+          <PlanCards plans={data.plans} selected={plan} onSelect={setPlan} trialMonths={data.trialUntil ? 0 : data.trialMonths} />
           <div style={{ marginTop: 16 }}>
             <label className="field-label" htmlFor="method">
               {t("sub.paymentMethod")}

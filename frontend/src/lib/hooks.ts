@@ -4,6 +4,7 @@ import { specialtyName } from "./format";
 import { translate, useI18n } from "./i18n";
 import type { Country, CountryCode, ExchangeRates, Specialty } from "./types";
 import type { SearchRegion } from "../components/SearchBar";
+import { BRAND_NAME } from "./brand";
 
 interface State<T> {
   data: T | null;
@@ -122,7 +123,7 @@ export function useCountries(): Country[] {
 export function useTitle(title: string) {
   const { t } = useI18n();
   useEffect(() => {
-    document.title = title ? `${title} · AlloDoc` : t("meta.title");
+    document.title = title ? `${title} · ${BRAND_NAME}` : t("meta.title");
   }, [title, t]);
 }
 

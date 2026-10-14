@@ -38,6 +38,7 @@ export function ProSignup() {
     address: "",
     fee: "",
     phone: "",
+    teleconsultation: false,
   });
   const country: CountryCode = form.country || remembered || "";
   const regions = useRegions(country || null);
@@ -180,6 +181,14 @@ export function ProSignup() {
             </label>
           </div>
 
+          <label className="choice">
+            <input type="checkbox" checked={form.teleconsultation} onChange={(e) => setForm((f) => ({ ...f, teleconsultation: e.target.checked }))} />
+            <span>
+              <b>{t("video.settingOff")}</b>
+              <br />
+              <span className="small muted">{t("video.signupHint")}</span>
+            </span>
+          </label>
           <p className="muted small row">
             <Icon name="clock" size={14} /> {t("proSignup.scheduleNote")}
           </p>

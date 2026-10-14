@@ -150,4 +150,45 @@ final class SubscriptionTest extends KernelTestCase
     {
         return static::getContainer()->get(PractitionerSearch::class)->search(['country' => 'ML'], 1, 10)['total'];
     }
+
+    public function testValidationGivesThreeFreeMonthsOnce(): void
+    {
+        $p = $this->pendingPractitioner();
+        self::assertFalse($p->isPublished());
+
+        self::assertTrue($this->subscriptions->grantTrial($p->verify()));
+        self::assertTrue($p->isPublished());
+        self::assertTrue($p->isInTrial());
+        $expected = new \DateTimeImmutable('+3 months');
+        self::assertLessThan(60, abs($expected->getTimestamp() - $p->getPublishedUntil()->getTimestamp()));
+        self::assertEquals($p->getTrialUntil(), $p->getPublishedUntil());
+
+        // Une seule période gratuite par praticien, même s'il est validé à nouveau.
+        $until = $p->getPublishedUntil();
+        self::assertFalse($this->subscriptions->grantTrial($p->verify()));
+        self::assertEquals($until, $p->getPublishedUntil());
+    }
+
+    public function testPaymentDuringTrialStartsAfterTheFreePeriod(): void
+    {
+        $p = $this->pendingPractitioner();
+        $this->subscriptions->grantTrial($p->verify());
+        $trialEnd = $p->getTrialUntil();
+
+        $order = $this->subscriptions->order($p, $this->plans['semester'], 'orange_money');
+        $this->subscriptions->confirmPayment($order, 'TX-TRIAL', null);
+
+        self::assertEquals($trialEnd, $order->getStartsAt());
+        self::assertEquals($trialEnd->modify('+6 months'), $p->getPublishedUntil());
+        self::assertFalse($p->isInTrial());
+    }
+
+    private function pendingPractitioner(): Practitioner
+    {
+        $p = (new Practitioner('dr-nouveau', 'Moussa', 'Nouveau', 'M', 'ML-2'))->addFacility($this->practitioner->getMainFacility());
+        $this->em->persist($p);
+        $this->em->flush();
+
+        return $p;
+    }
 }

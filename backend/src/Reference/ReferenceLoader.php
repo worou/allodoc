@@ -45,10 +45,12 @@ final class ReferenceLoader
         ['kinesitherapie', 'Kinésithérapeute', 'bone', 'Physiotherapist'],
     ];
 
-    /** code => [nom, durée en mois, prix FCFA] */
+    /** code => [nom, durée en mois, prix FCFA] : 5 000 FCFA par mois, réglables pour 1, 3, 6 ou 12 mois. */
     public const PLANS = [
-        'semester' => ['Semestriel', 6, 6000],
-        'annual' => ['Annuel', 12, 10000],
+        'monthly' => ['Mensuel', 1, 5000],
+        'quarterly' => ['Trimestriel', 3, 15000],
+        'semester' => ['Semestriel', 6, 30000],
+        'annual' => ['Annuel', 12, 60000],
     ];
 
     private static ?array $data = null;
@@ -85,10 +87,13 @@ final class ReferenceLoader
             $manager->persist($specialties[$slug]);
         }
 
+        // Les formules peuvent déjà exister : les migrations les créent aussi (tarifs à 5 000 FCFA par mois).
         $i = 0;
         foreach (self::PLANS as $code => [$name, $months, $price]) {
-            $plans[$code] = new SubscriptionPlan($code, $name, $months, $price, $i++);
+            $plans[$code] = $manager->getRepository(SubscriptionPlan::class)->findOneBy(['code' => $code])
+                ?? new SubscriptionPlan($code, $name, $months, $price, $i);
             $manager->persist($plans[$code]);
+            ++$i;
         }
 
         return ['countries' => $countries, 'cities' => $cities, 'specialties' => $specialties, 'plans' => $plans];

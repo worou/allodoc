@@ -10,6 +10,7 @@ import { dayMonth, longDate, statusLabel } from "../lib/format";
 import { useApi, useTitle } from "../lib/hooks";
 import { Trans, useI18n } from "../lib/i18n";
 import type { Appointment, AppointmentStatus, PractitionerSummary, SubscriptionPlan, SubscriptionStatusResponse } from "../lib/types";
+import { VideoBadge, VideoJoinButton } from "../components/VideoJoin";
 
 interface Agenda {
   practitioner: PractitionerSummary;
@@ -27,6 +28,42 @@ interface Stats {
 function shiftDate(date: string, days: number) {
   const [y, m, d] = date.split("-").map(Number);
   return new Date(Date.UTC(y, m - 1, d + days)).toISOString().slice(0, 10);
+}
+
+/** Réglage "Je propose la téléconsultation" de l'agenda. */
+function TeleconsultationSetting({ enabled, onChange }: { enabled: boolean; onChange: () => void }) {
+  const { t } = useI18n();
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function toggle() {
+    setBusy(true);
+    setError(null);
+    try {
+      await api("/api/pro/settings", { method: "PATCH", body: JSON.stringify({ teleconsultation: !enabled }) });
+      onChange();
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : t("error.action"));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <div className={`card tele-setting${enabled ? " on" : ""}`}>
+      <span className="video-icon">
+        <Icon name="video" size={22} />
+      </span>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <b>{enabled ? t("video.settingOn") : t("video.settingOff")}</b>
+        <p className="small muted">{enabled ? t("video.settingOnHint") : t("video.settingOffHint")}</p>
+        {error && <p className="small" style={{ color: "var(--danger)" }}>{error}</p>}
+      </div>
+      <button type="button" className={`btn btn-sm ${enabled ? "btn-outline" : "btn-primary"}`} disabled={busy} onClick={toggle}>
+        {enabled ? t("video.disable") : t("video.enable")}
+      </button>
+    </div>
+  );
 }
 
 /** Présentation pour les soignants ; connecté sans fiche praticien : formulaire d'inscription à la place du bouton. */
@@ -189,6 +226,7 @@ export default function Pro() {
             </span>
           </p>
         )}
+        {data && <TeleconsultationSetting enabled={data.practitioner.teleconsultation} onChange={agenda.reload} />}
         {data && (
           <div className="row" style={{ justifyContent: "space-between", marginBottom: 14 }}>
             <button type="button" className="btn btn-sm btn-outline" onClick={() => setFrom(shiftDate(data.from, -7))}>
@@ -226,6 +264,11 @@ export default function Pro() {
                           {statusLabel(a.status)}
                         </span>
                         {a.firstVisit && <span className="tag tag-ochre" style={{ marginInlineStart: 4 }}>{t("pro.firstVisit")}</span>}
+                        {a.video && (
+                          <span style={{ marginInlineStart: 4 }}>
+                            <VideoBadge />
+                          </span>
+                        )}
                         <p className="small muted">
                           <a href={`tel:${a.patient?.phone}`} dir="ltr">
                             {a.patient?.phone}
@@ -235,6 +278,7 @@ export default function Pro() {
                       </div>
                       {active && (
                         <div className="acts">
+                          <VideoJoinButton a={a} />
                           {started ? (
                             <>
                               <button type="button" className="btn btn-sm btn-indigo" onClick={() => setStatus(a, "honored")}>

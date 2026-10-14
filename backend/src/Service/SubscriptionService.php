@@ -26,6 +26,9 @@ use Symfony\Component\DependencyInjection\Attribute\Autowire;
  */
 final class SubscriptionService
 {
+    /** Publication gratuite accordée à la validation d'une fiche, avant tout abonnement payant. */
+    public const TRIAL_MONTHS = 3;
+
     /** Délai au-delà duquel une commande non payée est considérée comme abandonnée. */
     private const PENDING_TTL = '-14 days';
 
@@ -36,6 +39,7 @@ final class SubscriptionService
         private readonly LoggerInterface $logger,
         private readonly ExchangeRates $rates,
         #[Autowire('%app.payment_accounts%')] private readonly array $paymentAccounts,
+        #[Autowire('%env(BRAND_NAME)%')] private readonly string $brand,
     ) {
     }
 
@@ -68,6 +72,32 @@ final class SubscriptionService
         return $subscription;
     }
 
+    /**
+     * Période gratuite de TRIAL_MONTHS mois, accordée une seule fois, à la première validation de la fiche
+     * (pas à l'inscription : l'attente de vérification ne consomme pas la gratuité). false si déjà accordée.
+     */
+    public function grantTrial(Practitioner $practitioner): bool
+    {
+        if (null !== $practitioner->getTrialUntil()) {
+            return false;
+        }
+        $now = new \DateTimeImmutable();
+        $current = $practitioner->getPublishedUntil();
+        $start = null !== $current && $current > $now ? $current : $now;
+        $practitioner->startTrial($start->modify(sprintf('+%d months', self::TRIAL_MONTHS)));
+
+        $phone = $practitioner->getUser()?->getPhone();
+        if (null !== $phone) {
+            $this->sms->send($phone, sprintf(
+                '%s : votre fiche est validée. Elle est publiée gratuitement jusqu\'au %s.',
+                $this->brand,
+                $practitioner->getTrialUntil()->format('d/m/Y'),
+            ));
+        }
+
+        return true;
+    }
+
     /** Valide le paiement : la période démarre à la fin de l'abonnement en cours (renouvellement) ou maintenant. */
     public function confirmPayment(Subscription $subscription, ?string $transactionId, ?User $confirmedBy): void
     {
@@ -86,7 +116,7 @@ final class SubscriptionService
         $phone = $practitioner->getUser()?->getPhone();
         if (null !== $phone) {
             $this->sms->send($phone, sprintf(
-                'AlloDoc : paiement %s reçu (%s FCFA). Votre profil est publié jusqu\'au %s. Merci !',
+                $this->brand.' : paiement %s reçu (%s FCFA). Votre profil est publié jusqu\'au %s. Merci !',
                 $subscription->getReference(),
                 number_format($subscription->getAmount(), 0, ',', ' '),
                 $subscription->getEndsAt()->format('d/m/Y'),
@@ -116,7 +146,7 @@ final class SubscriptionService
     {
         $country = $this->paymentAccounts[$this->countryCode($practitioner)] ?? [];
         $default = $this->paymentAccounts['default'] ?? [];
-        $account = ['holder' => $country['holder'] ?? $default['holder'] ?? 'AlloDoc'];
+        $account = ['holder' => $country['holder'] ?? $default['holder'] ?? $this->brand];
         foreach ($this->paymentMethods($practitioner) as $method) {
             if ('paypal' === $method) {
                 $account[$method] = null;
@@ -154,7 +184,7 @@ final class SubscriptionService
         try {
             $orderId = $this->paypal->createOrder(
                 $subscription->getReference(),
-                sprintf('AlloDoc - abonnement %s (%s FCFA)', $subscription->getPlan()->getName(), number_format($subscription->getAmount(), 0, ',', ' ')),
+                sprintf('%s - abonnement %s (%s FCFA)', $this->brand, $subscription->getPlan()->getName(), number_format($subscription->getAmount(), 0, ',', ' ')),
                 $cents,
             );
         } catch (PayPalException $e) {
@@ -199,7 +229,7 @@ final class SubscriptionService
         $this->em->flush();
         $this->logger->error('Paiement PayPal à vérifier pour la commande {reference} : {trace}', ['reference' => $subscription->getReference(), 'trace' => $trace]);
 
-        throw new BookingException('Paiement PayPal reçu, en cours de vérification par l\'équipe AlloDoc.', 409);
+        throw new BookingException('Paiement PayPal reçu, en cours de vérification par l\'équipe '.$this->brand.'.', 409);
     }
 
     private function countryCode(Practitioner $practitioner): string

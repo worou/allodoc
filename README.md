@@ -187,10 +187,18 @@ Le projet Android natif est généré dans `frontend/android/` avec Capacitor. I
 
 Un praticien n'est **visible et réservable que s'il est vérifié par l'administrateur de son pays ET abonné**.
 
+**Gratuité.** L'inscription est gratuite. À la **validation de la fiche** par un administrateur, le profil est publié **gratuitement pendant 3 mois**, une seule fois par praticien : le temps d'attente de la vérification n'entame pas cette période. Un SMS prévient le praticien 7 jours puis 1 jour avant la fin de la gratuité.
+
+**Ensuite, 5 000 FCFA par mois**, réglables d'avance pour plusieurs mois, au même prix mensuel :
+
 | Formule | Prix | Durée |
 |---|---|---|
-| Semestriel | 6 000 FCFA | 6 mois |
-| Annuel | 10 000 FCFA (soit 833 FCFA / mois, 2 000 FCFA d'économie) | 12 mois |
+| Mensuel | 5 000 FCFA | 1 mois |
+| Trimestriel | 15 000 FCFA | 3 mois |
+| Semestriel | 30 000 FCFA | 6 mois |
+| Annuel | 60 000 FCFA | 12 mois |
+
+Une souscription faite pendant la gratuité commence à la fin de celle-ci. La durée de gratuité se règle dans `SubscriptionService::TRIAL_MONTHS`. Les tarifs sont en base (table `subscription_plan`, migration `Version20261013205202`).
 
 Les prix sont affichés avec leur **équivalent en dollars US** au taux du jour (par exemple 10 000 FCFA ≈ 17,09 $US). Les taux viennent de `open.er-api.com` (gratuit, sans clé), sont mis en cache 12 heures et exposés par `GET /api/exchange-rates`. Si ce service est injoignable, l'application utilise les taux de secours de `services.yaml` (`app.usd_fallback_rates`).
 

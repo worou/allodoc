@@ -26,15 +26,18 @@ export default function Login() {
           navigate(next ?? fallback, { replace: true });
         }}
       />
-      <div className="card" style={{ padding: 16, marginTop: 16 }}>
-        <p className="small" style={{ fontWeight: 700, marginBottom: 6 }}>{t("loginPage.demo")}</p>
-        <ul className="small muted" style={{ margin: 0, paddingInlineStart: 18 }}>
-          <li>{t("loginPage.demoPatient")}</li>
-          <li>{t("loginPage.demoPractitioner")}</li>
-          <li>{t("loginPage.demoAdmin")}</li>
-          <li>{t("loginPage.demoSuper")}</li>
-        </ul>
-      </div>
+      {/* Comptes fictifs des données de démonstration : n'existent qu'en développement. */}
+      {import.meta.env.DEV && (
+        <div className="card" style={{ padding: 16, marginTop: 16 }}>
+          <p className="small" style={{ fontWeight: 700, marginBottom: 6 }}>{t("loginPage.demo")}</p>
+          <ul className="small muted" style={{ margin: 0, paddingInlineStart: 18 }}>
+            <li>{t("loginPage.demoPatient")}</li>
+            <li>{t("loginPage.demoPractitioner")}</li>
+            <li>{t("loginPage.demoAdmin")}</li>
+            <li>{t("loginPage.demoSuper")}</li>
+          </ul>
+        </div>
+      )}
     </div>
   );
 }

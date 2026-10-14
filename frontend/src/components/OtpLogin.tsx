@@ -3,7 +3,8 @@ import { isNativeApp } from "../lib/install";
 import { api, API_URL, ApiError, countryName } from "../lib/api";
 import { SUBREGIONS, subregionName } from "../lib/africa";
 import { useCountries } from "../lib/hooks";
-import { translate, useI18n } from "../lib/i18n";
+import { Link } from "react-router";
+import { Trans, translate, useI18n } from "../lib/i18n";
 import type { CountryCode, User } from "../lib/types";
 import { useAuth } from "./AuthProvider";
 import { Flag } from "./Flag";
@@ -12,7 +13,10 @@ import { Icon } from "./Icon";
 
 /** Placeholder : numéro national fictif à la bonne longueur ("70 12 34 56" au Mali, "803 123 4567" au Nigeria). */
 function phonePlaceholder(length: number) {
-  return "7012345678901".slice(0, length).replace(/(\d{2})(?=\d)/g, "$1 ");
+  const digits = "7012345678901".slice(0, length);
+  // Paires de chiffres ; longueur impaire : un premier groupe de 3 ("701 23 45 67").
+  const head = length % 2 ? 3 : 2;
+  return [digits.slice(0, head), ...(digits.slice(head).match(/\d{2}/g) ?? [])].join(" ");
 }
 
 interface Provider {
@@ -61,7 +65,10 @@ function newNonce() {
   return nonce;
 }
 
-/** Boutons "Continuer avec Google / GitHub" : navigation complète vers l'API, qui redirige vers le fournisseur. */
+/**
+ * Boutons "Continuer avec Google / GitHub" : navigation complète vers l'API, qui redirige vers le fournisseur.
+ * Seuls les fournisseurs configurés sur le serveur sont affichés (avec le séparateur qui les suit).
+ */
 export function OAuthButtons({ next }: { next: string }) {
   // Google interdit sa connexion dans les vues web intégrées (APK) : on garde alors SMS et email.
   if (isNativeApp()) return null;
@@ -69,38 +76,37 @@ export function OAuthButtons({ next }: { next: string }) {
 }
 
 function OAuthButtonList({ next }: { next: string }) {
-  const [providers, setProviders] = useState<Provider[]>([
-    { id: "google", name: "Google", configured: true },
-    { id: "github", name: "GitHub", configured: true },
-  ]);
-  const [notice, setNotice] = useState<string | null>(null);
+  const [providers, setProviders] = useState<Provider[]>([]);
   const { t } = useI18n();
 
   useEffect(() => {
-    api<Provider[]>("/api/auth/oauth/providers", { auth: false }).then(setProviders).catch(() => {});
+    api<Provider[]>("/api/auth/oauth/providers", { auth: false })
+      .then((list) => setProviders(list.filter((p) => p.configured)))
+      .catch(() => {});
   }, []);
 
+  if (providers.length === 0) return null;
   return (
-    <div className="stack" style={{ gap: 8 }}>
-      {providers.map((p) => (
-        <button
-          key={p.id}
-          type="button"
-          className={`btn btn-block btn-social btn-${p.id}`}
-          onClick={() => {
-            if (!p.configured) {
-              setNotice(t("otp.providerDisabled", { provider: p.name }));
-              return;
-            }
-            window.location.href = `${API_URL}/api/auth/oauth/${p.id}?next=${encodeURIComponent(next)}&nonce=${newNonce()}`;
-          }}
-        >
-          {p.id === "google" ? <GoogleLogo /> : <GithubLogo />}
-          {t("otp.continueWith", { provider: p.name })}
-        </button>
-      ))}
-      {notice && <p className="alert alert-warn small">{notice}</p>}
-    </div>
+    <>
+      <div className="stack" style={{ gap: 8 }}>
+        {providers.map((p) => (
+          <button
+            key={p.id}
+            type="button"
+            className={`btn btn-block btn-social btn-${p.id}`}
+            onClick={() => {
+              window.location.href = `${API_URL}/api/auth/oauth/${p.id}?next=${encodeURIComponent(next)}&nonce=${newNonce()}`;
+            }}
+          >
+            {p.id === "google" ? <GoogleLogo /> : <GithubLogo />}
+            {t("otp.continueWith", { provider: p.name })}
+          </button>
+        ))}
+      </div>
+      <div className="divider">
+        <span>{t("otp.orReceiveCode")}</span>
+      </div>
+    </>
   );
 }
 
@@ -109,11 +115,16 @@ export function PhoneField({ country, setCountry, phone, setPhone }: { country: 
   const { t } = useI18n();
   const countries = useCountries();
   const current = countries.find((c) => c.code === country);
+  const length = current?.phoneLengths[0] ?? 8;
   return (
-    <div className="phone-input">
-      <label className="prefix">
-        <Flag code={country} width={22} />
-        <select aria-label={t("otp.country")} value={country} onChange={(e) => setCountry(e.target.value as CountryCode)} style={{ border: 0, background: "transparent", fontWeight: 700 }}>
+    <div>
+      <div className="phone-input">
+        {/* Bouton compact (drapeau + indicatif) ; la liste native, invisible par-dessus, garde les noms des pays. */}
+        <label className="prefix">
+          <Flag code={country} width={24} />
+          <span className="prefix-code" dir="ltr">{current?.phonePrefix ?? ""}</span>
+          <Icon name="chevronDown" size={16} />
+          <select className="prefix-select" aria-label={t("otp.country")} value={country} onChange={(e) => setCountry(e.target.value as CountryCode)}>
           {!current && <option value={country}>{countryName(country)}</option>}
           {SUBREGIONS.map((s) => (
             <optgroup key={s.code} label={subregionName(s.code)}>
@@ -126,9 +137,13 @@ export function PhoneField({ country, setCountry, phone, setPhone }: { country: 
                 ))}
             </optgroup>
           ))}
-        </select>
-      </label>
-      <input id="phone" className="input" type="tel" dir="ltr" inputMode="tel" autoComplete="tel-national" placeholder={phonePlaceholder(current?.phoneLengths[0] ?? 8)} value={phone} onChange={(e) => setPhone(e.target.value)} required />
+          </select>
+        </label>
+        <input id="phone" className="input phone-number" type="tel" dir="ltr" inputMode="tel" autoComplete="tel-national" placeholder={phonePlaceholder(length)} value={phone} onChange={(e) => setPhone(e.target.value)} required />
+      </div>
+      <p className="muted small" style={{ marginTop: 6 }}>
+        {t("otp.phoneHint", { country: countryName(country), n: length })}
+      </p>
     </div>
   );
 }
@@ -249,10 +264,6 @@ export function OtpLogin({ onDone, title, next = "/compte" }: { onDone?: (user: 
 
       <OAuthButtons next={next} />
 
-      <div className="divider">
-        <span>{t("otp.orReceiveCode")}</span>
-      </div>
-
       <div className="segmented" role="tablist" aria-label={t("otp.mode")}>
         <button type="button" role="tab" aria-selected={mode === "sms"} onClick={() => setMode("sms")}>
           <Icon name="phone" size={16} /> {t("otp.bySms")}
@@ -284,6 +295,12 @@ export function OtpLogin({ onDone, title, next = "/compte" }: { onDone?: (user: 
       </button>
       <p className="muted small">
         {t("otp.firstVisit")}
+      </p>
+      <p className="muted small">
+        <Trans
+          text={t("legal.acceptance")}
+          values={{ terms: <Link to="/conditions">{t("legal.terms")}</Link>, privacy: <Link to="/confidentialite">{t("legal.privacy")}</Link> }}
+        />
       </p>
     </form>
   );

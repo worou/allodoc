@@ -57,6 +57,14 @@ class Appointment
     #[ORM\Column]
     private bool $firstVisit;
 
+    /** Téléconsultation par vidéo (sinon : au cabinet). */
+    #[ORM\Column(options: ['default' => false])]
+    private bool $video = false;
+
+    /** Salle Jitsi privée du rendez-vous vidéo (nom aléatoire). */
+    #[ORM\Column(length: 64, nullable: true)]
+    private ?string $videoRoom = null;
+
     #[ORM\Column]
     private \DateTimeImmutable $createdAt;
 
@@ -90,6 +98,17 @@ class Appointment
     public function getStatus(): AppointmentStatus { return $this->status; }
     public function getReason(): ?string { return $this->reason; }
     public function isFirstVisit(): bool { return $this->firstVisit; }
+    public function isVideo(): bool { return $this->video; }
+    public function getVideoRoom(): ?string { return $this->videoRoom; }
+
+    /** Rendez-vous en téléconsultation, dans la salle $room. */
+    public function startVideo(string $room): static
+    {
+        $this->video = true;
+        $this->videoRoom = $room;
+
+        return $this;
+    }
     public function getCreatedAt(): \DateTimeImmutable { return $this->createdAt; }
     public function getCancelledAt(): ?\DateTimeImmutable { return $this->cancelledAt; }
     public function getReminderSentAt(): ?\DateTimeImmutable { return $this->reminderSentAt; }

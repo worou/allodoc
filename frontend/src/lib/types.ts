@@ -166,6 +166,10 @@ export interface Appointment {
   status: AppointmentStatus;
   firstVisit: boolean;
   reason: string | null;
+  /** Téléconsultation par vidéo, et sa fenêtre d'accès (de 15 min avant à 1 h après le créneau). */
+  video: boolean;
+  videoOpensAt: string | null;
+  videoClosesAt: string | null;
   practitioner: PractitionerSummary;
   facility: Facility;
   relative: Relative | null;
@@ -174,7 +178,7 @@ export interface Appointment {
 }
 
 export interface SubscriptionPlan {
-  code: "semester" | "annual";
+  code: string;
   name: string;
   durationMonths: number;
   price: number;
@@ -207,6 +211,10 @@ export interface SubscriptionStatusResponse {
   activeSubscription: boolean;
   publishedUntil: string | null;
   daysLeft: number;
+  /** Publication gratuite en cours (accordée à la validation de la fiche). */
+  inTrial: boolean;
+  trialUntil: string | null;
+  trialMonths: number;
   plans: SubscriptionPlan[];
   /** Moyens de paiement proposés dans le pays du praticien. */
   methods: { code: string; label: string }[];

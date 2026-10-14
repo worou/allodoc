@@ -67,6 +67,15 @@ export function useAuth() {
   return useContext(AuthContext);
 }
 
+/**
+ * Rôles implicites, comme la hiérarchie du serveur (security.yaml) : un super-administrateur administre aussi
+ * chaque pays. ROLE_PRACTITIONER n'est jamais implicite ici : il signifie "a une fiche praticien" pour l'interface.
+ */
+const IMPLIED: Record<string, string[]> = {
+  ROLE_COUNTRY_ADMIN: ["ROLE_SUPER_ADMIN"],
+};
+
 export function hasRole(user: User | null, role: string) {
-  return !!user?.roles.includes(role);
+  const roles = user?.roles ?? [];
+  return roles.includes(role) || (IMPLIED[role] ?? []).some((r) => roles.includes(r));
 }
